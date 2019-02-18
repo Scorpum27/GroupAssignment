@@ -256,7 +256,7 @@ public class Schedule {
 		Schedule schedule = new Schedule(courtScheduleFile); 	// initializes schedule with slots when courts are free (see excel file)
 		int unsuccessfulPlacements = 0;
 		for (Player player : playersSortedByPossibleCombinations) {
-			Boolean successfulPlacement = schedule.placePlayer(player, 4); // use strategy 2 to consider only desired slots and all constraints
+			Boolean successfulPlacement = schedule.placePlayer(player, 2); // use strategy 2 to consider only desired slots and all constraints
 			// maybe place a player in fullest possible group instead of smaller ones!
 			if (!successfulPlacement) {
 				unsuccessfulPlacements++;
@@ -276,24 +276,28 @@ public class Schedule {
 		for (int groupSize : Arrays.asList(1,2,3,4)) {
 			this.breakUpGroups(groupSize);
 		}
-		int maxPullLevel = 2000;
-		for (int rounds=0; rounds<100; rounds++) {
+		int maxPullLevel = 5;
+		for (int rounds=0; rounds<3; rounds++) {
 			for (int groupSize : Arrays.asList(1,2,3)) {
-				this.extendSmallGroups(groupSize, maxPullLevel);
+//				this.extendSmallGroups(groupSize, maxPullLevel);
 			}
 		}
 		int maxDesirableGroupSize = 4;
-		this.shrinkOverfullGroups(maxDesirableGroupSize);
+//		this.shrinkOverfullGroups(maxDesirableGroupSize);
 	}
 
 
 
 	private void shrinkOverfullGroups(int maxDesirableGroupSize) {
-		int pushLevel = 1000;
-		for (Slot slot : this.slots.values()) {
+		int pushLevel = 3;
+		List<Integer> slotIdList = new ArrayList<Integer>();
+		slotIdList.addAll(this.slots.keySet());
+		for (Integer slotId : slotIdList) {
+			Slot slot = this.slots.get(slotId);
 			if (slot.players.size()>4) {
-				for (Player player : slot.players.values()) {
-					boolean pushSuccessful = this.pushSinglePlayer(player.playerNr, slot.slotId, pushLevel);
+//				System.out.println("Trying to shrink slot = "+slotId);
+				for (Integer playerNr : slot.players.keySet()) {
+					boolean pushSuccessful = this.pushSinglePlayer(playerNr, slot.slotId, pushLevel);
 					if (pushSuccessful && slot.players.size()<=4) {
 						break;
 					}
@@ -349,7 +353,7 @@ public class Schedule {
 		// try to push all players individually to other slots
 		for (Player player :  pushedSchedule.slots.get(slotId).players.values()) {
 			// define reach of a push
-			int pushLevel = 2000;
+			int pushLevel = 6;
 			boolean pushSuccessful = pushedSchedule.pushSinglePlayer(player.playerNr, slotId, pushLevel);
 			
 			// the following block is activated for conditional pushs i.e. where single pushs can only be performed if all players can be relocated
@@ -375,9 +379,7 @@ public class Schedule {
 	// IMPORTANT: The underlying schedule is only modified (synced) if a push can successfully be performed. Else, it remains unaltered!
 	public boolean pushSinglePlayer(Integer playerNr, Integer slotId, Integer pushLevel) {
 		
-		// make a temporary copy, which is modified in the process --> If successfully modified, the initial schedule is synced with the modified one
-		// this avoids messing up the initial schedule or ending in a concurrentModificationException due to implicit referencing
-		Schedule workingSchedule = this.clone();
+		Schedule tempSchedule = this.clone();
 		
 		// if too many levels of the push tree have been attempted
 //		System.out.println("Push level = "+pushLevel);
@@ -387,10 +389,86 @@ public class Schedule {
 		}
 		
 		// build reference to exactly the slot and player to be pushed
-		Slot slot = workingSchedule.slots.get(slotId);
-		Player player = slot.players.get(playerNr);
+		Integer slotSize = this.slots.get(slotId).players.size();
+//		Player player = slot.players.get(playerNr);
 		
 		// try to push to potential other slots (put slots into a list that is shuffled for random order of attempting slots)
+		Boolean pushSuccessful = false;
+		if (slotSize==1 || slotSize==2) {
+			for (int pushGroupSize : Arrays.asList(3,4,2,1)) {
+				pushSuccessful = tempSchedule.pushSinglePlayerToGroupWithSizeX(slotId, playerNr, pushGroupSize, pushLevel);				
+				if (pushSuccessful) {
+					this.copyFromSchedule(tempSchedule);
+					return true;
+				} else {
+					continue;
+				}
+			}
+		}
+		else if (slotSize==3) {
+			for (int pushGroupSize : Arrays.asList(3,4,2)) {
+				pushSuccessful = tempSchedule.pushSinglePlayerToGroupWithSizeX(slotId, playerNr, pushGroupSize, pushLevel);				
+				if (pushSuccessful) {
+					this.copyFromSchedule(tempSchedule);
+					return true;
+				} else {
+					continue;
+				}
+			}
+		}
+		else if (slotSize==4) {
+			for (int pushGroupSize : Arrays.asList(3)) {
+				pushSuccessful = tempSchedule.pushSinglePlayerToGroupWithSizeX(slotId, playerNr, pushGroupSize, pushLevel);				
+				if (pushSuccessful) {
+					this.copyFromSchedule(tempSchedule);
+					return true;
+				} else {
+					continue;
+				}
+			}
+		}
+		else if (slotSize==5) {
+			for (int pushGroupSize : Arrays.asList(3,4)) {
+				if (pushGroupSize==3) {
+//					System.out.println("Attempting to push player from G5 into a G3");					
+				}
+				else {
+//					System.out.println("Attempting to push player from G5 into a G4");
+				}
+				pushSuccessful = tempSchedule.pushSinglePlayerToGroupWithSizeX(slotId, playerNr, pushGroupSize, pushLevel);				
+				if (pushSuccessful) {
+//					System.out.println("Push successful!");
+					this.copyFromSchedule(tempSchedule);
+					return true;
+				} else {
+					continue;
+				}
+			}
+//			System.out.println("Push attempts were unsuccessful!");
+		}
+		
+		// if the player could not be pushed to any other slot
+		return false;
+	}
+	
+
+	public Boolean pushSinglePlayerToGroupWithSizeX(Integer slotId, Integer playerNr, int pushGroupSize, int pushLevel) {
+		
+		// make a temporary copy, which is modified in the process --> If successfully modified, the initial schedule is synced with the modified one
+		// this avoids messing up the initial schedule or ending in a concurrentModificationException due to implicit referencing
+		Schedule workingSchedule = this.clone();
+		
+		// build reference to exactly the slot and player to be pushed
+		Slot slot = workingSchedule.slots.get(slotId);
+		Player player;
+		// through the implicit loops a player might no more be within a group (return false instead of proceeding with a null pointer)
+		if (slot.players.containsKey(playerNr)) {
+			player = slot.players.get(playerNr);			
+		}
+		else {
+			return false;
+		}
+		
 		List<Map.Entry<Integer,Slot>> slotList = new ArrayList<Map.Entry<Integer,Slot>>(workingSchedule.slots.entrySet());
 		Collections.shuffle(slotList);
 		for(Map.Entry<Integer,Slot> entry: slotList) {
@@ -399,49 +477,57 @@ public class Schedule {
 			if (otherslot.isSameTimeAndDay(slot)) {
 				continue;
 			}
-			// try to push player to groups with 3 players first to make it a perfect group of 4
-			// if it works, sync the initial schedule with the new modifications before exiting method
-			else if (otherslot.players.size() == 3 && otherslot.acceptsPlayer(player, 2)) {
-				otherslot.players.put(player.playerNr,player);
-				slot.players.remove(playerNr);
-				this.copyFromSchedule(workingSchedule);
-				return true;
+			if (otherslot.players.size()!=pushGroupSize) {
+				continue;
 			}
-			// if player cannot be pushed into a slot with three players,
-			// try pushing into one of four, where another player has to be pushed out instead
-			else if (otherslot.players.size() == 4 && otherslot.groupVirtuallyAcceptsPlayer(player)) {
-				// backup before making push attempt in order to restore in case of failure
-//				Schedule backupSchedule = workingSchedule.clone();
-				// remove player from old slot and push into new one to make it 5 players in that group
-				slot.players.remove(playerNr);
-				otherslot.players.put(player.playerNr,player);
-				// have too many players now --> must push one to another group now!
-				Iterator<Player> otherPlayerIter = otherslot.players.values().iterator();
-				while(otherPlayerIter.hasNext()) {
-					Player otherPlayer = otherPlayerIter.next();
-//				for (Player otherPlayer : otherslot.players.values()) {
-					if (playerNr != otherPlayer.playerNr) {
-						boolean pushSuccessful = workingSchedule.pushSinglePlayer(otherPlayer.playerNr, otherslot.slotId, pushLevel-1);
-						// if push successful, pushSinglePlayer will have modified schedule
-						if (pushSuccessful) {
-							this.copyFromSchedule(workingSchedule);
-							return true;
+			if (otherslot.players.size() < 4) {
+				if (otherslot.acceptsPlayer(player, 2)) {
+					otherslot.players.put(player.playerNr,player);
+					slot.players.remove(player.playerNr);
+					System.out.println("Managed to shift a larger group into a G<4");
+					this.copyFromSchedule(workingSchedule);
+					return true;
+				}
+			}
+			else if (otherslot.players.size() == 4) {
+				// if all other 4 players do not accept this player, it might be an option to kick out another player (-> push) before adding new player
+				// kick out obviously only possible if consecutive push is possible for the latter!
+				if (otherslot.groupVirtuallyAcceptsPlayer(player)) {
+					// remove player from old slot and push into new one to make it 5 players in that group
+					slot.players.remove(player.playerNr);
+					otherslot.players.put(player.playerNr,player);
+//					System.out.println("Made a group of 5!");					
+					// have too many players now --> must push one to another group now!
+					Iterator<Player> otherPlayerIter = otherslot.players.values().iterator();
+					while(otherPlayerIter.hasNext()) {
+						Player otherPlayer = otherPlayerIter.next();
+						if (player.playerNr != otherPlayer.playerNr) {
+//							System.out.println("Push Level = "+pushLevel);
+							boolean pushSuccessful = workingSchedule.pushSinglePlayer(otherPlayer.playerNr, otherslot.slotId, pushLevel-1);
+							// if push successful, pushSinglePlayer will have modified schedule
+							if (pushSuccessful) {
+								this.copyFromSchedule(workingSchedule);
+//								System.out.println("Insertion was success");
+								return true;
+							}
+							// if push of that player fails, try next player
+							else {
+//								System.out.println("Insertion was no success. Trying to relocate next player in group.");
+								continue;
+							}
 						}
-						// if push of that player fails, try next player
 						else {
-							continue;
+//							System.out.println("Insertion was no success. Was trying to relocate same player.");
 						}
 					}
+					slot.players.put(player.playerNr,player);
+					otherslot.players.remove(player.playerNr);
+//					System.out.println("Reversed group of 5!");
 				}
-				// if code reaches this line, no player of the slot could be pushed to a next group
-				// the outer loop will now try to push the player into another slot
-//				this.copyFromSchedule(backupSchedule);			
 			}
 		}
-		// if the player could not be pushed to any other slot
 		return false;
 	}
-	
 
 	public void extendSmallGroups(int groupSize, int maxPullLevel) {
 //		System.out.println("Attempting filling of groups with size="+groupSize);
