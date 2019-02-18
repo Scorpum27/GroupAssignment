@@ -1,6 +1,7 @@
 package tcDietlikon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,9 @@ public class Slot {
 	}
 	
 	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
+		if (! player.isADesiredSlot(this)) {
+			return false;
+		}
 		for (Slot slot : player.selectedSlots) {
 			if (this.weekdayNr == slot.weekdayNr) {
 				return false;
@@ -62,9 +66,6 @@ public class Slot {
 				classDiff > player.maxClassDiff  ||  classDiff > otherPlayer.maxClassDiff) {		// Default > 2.0
 				return false;
 			}
-		}
-		if (! player.isADesiredSlot(this)) {
-			return false;
 		}
 		return true;
 	}
@@ -195,5 +196,85 @@ public class Slot {
 		} else {
 			return "Unkwn";
 		}
+	}
+
+	public List<Player> pushPlayerAndKickOtherplayer(Player player) {
+		Map<Player,Double> kickoutCandidates = new HashMap<Player,Double>();
+		List<Player> kickoutCandidatesList = new ArrayList<Player>();
+		if (! player.isADesiredSlot(this)) {
+			// returns empty list indicating that no possibility of a push and kick
+			return kickoutCandidatesList;
+		}
+		// check for every playerOut if new player could be added if playerOut is kicked out 
+		for (Player playerOut : this.players.values()) {
+			// check compatibility of remaining other players (all players in group except the one that might be kicked out)
+			boolean compatibleWithRemainingPlayers = true;
+			int maxAge = player.age;
+			int minAge = player.age;
+			int maxClass = player.strength;
+			int minClass = player.strength;
+			for (Player otherPlayer : this.players.values()) {
+				// all but the kick-out candidate
+				if (otherPlayer.equals(playerOut)) {
+					continue;
+				}
+				if (!player.isCompatibleWithOtherPlayer(otherPlayer)) {
+					compatibleWithRemainingPlayers = false;
+					break;
+				}
+				else {
+					if (otherPlayer.age > maxAge) {
+						maxAge = otherPlayer.age;
+					}
+					if (otherPlayer.age < minAge) {
+						minAge = otherPlayer.age;
+					}
+					if (otherPlayer.strength > maxClass) {
+						maxClass = otherPlayer.strength;
+					}
+					if (otherPlayer.strength < minClass) {
+						minClass = otherPlayer.strength;
+					}
+					continue;
+				}
+			}
+			if (compatibleWithRemainingPlayers) {
+				kickoutCandidates.put(playerOut,1.0*(Math.abs(maxClass-minClass))+0.5*(Math.abs(maxAge-minAge)));
+			}
+		}
+		// sort the kick-out candidates by the compatibility that they leave for the group i.e. how small the max. class and age difference is
+		for (Player kickoutPlayer : kickoutCandidates.keySet()) {
+			if (kickoutCandidatesList.size()==0) {
+				kickoutCandidatesList.add(kickoutPlayer);
+			}
+			else {
+				int position = 0;
+				int insertPosition = kickoutCandidatesList.size(); // initialize with last possible position in case loop does not hit worse candidate before
+				for (Player sortedKickoutPlayer : kickoutCandidatesList) {
+					if (kickoutCandidates.get(kickoutPlayer)<kickoutCandidates.get(sortedKickoutPlayer)) {
+						insertPosition = position;
+						break;
+					}
+					position++;
+				}
+				kickoutCandidatesList.add(insertPosition, kickoutPlayer);
+			}
+		}
+		return kickoutCandidatesList;
+	}
+
+	public boolean isCompatibleWithPlayer(Player player) {
+		for (Player otherPlayer : this.players.values()) {
+			int ageDiff = Math.abs(player.age - otherPlayer.age);
+			int classDiff = Math.abs(player.strength - otherPlayer.strength);
+			if (ageDiff > player.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff || // Default > 3.0
+				classDiff > player.maxClassDiff || classDiff > otherPlayer.maxClassDiff) { // Default > 2.0
+				return false;
+			}
+		}
+		if (!player.isADesiredSlot(this)) {
+			return false;
+		}
+		return true;
 	}
 }

@@ -154,7 +154,7 @@ public class Schedule {
 //				}
 				if (slot.acceptsPlayer(player, strategy)) {
 					slot.players.put(player.playerNr,player);
-					player.selectedSlots.add(new Slot(slot.slotId, slot.weekdayNr, slot.time, slot.courtNr));
+					player.addSelectedSlot(new Slot(slot.slotId, slot.weekdayNr, slot.time, slot.courtNr));
 					player.placementRound = strategy;
 					return true;
 				}
@@ -353,7 +353,7 @@ public class Schedule {
 		// try to push all players individually to other slots
 		for (Player player :  pushedSchedule.slots.get(slotId).players.values()) {
 			// define reach of a push
-			int pushLevel = 6;
+			int pushLevel = 4;
 			boolean pushSuccessful = pushedSchedule.pushSinglePlayer(player.playerNr, slotId, pushLevel);
 			
 			// the following block is activated for conditional pushs i.e. where single pushs can only be performed if all players can be relocated
@@ -473,17 +473,25 @@ public class Schedule {
 		Collections.shuffle(slotList);
 		for(Map.Entry<Integer,Slot> entry: slotList) {
 			Slot otherslot = entry.getValue();
-			// do not push to parallel slot (same slot or slot at same day and time on another court)
-			if (otherslot.isSameTimeAndDay(slot)) {
+			// do not push to same slot again!
+			if (otherslot.slotId==slot.slotId) {
 				continue;
 			}
+			// only push to groups with desired size
 			if (otherslot.players.size()!=pushGroupSize) {
 				continue;
 			}
+			// only if otherslot does not interfere with other slots selected by player
+			// (note that on the day the slot is dropped another slot can be chosen --> the day is not blocked as for other selected slots)
+			if (!player.canMoveThisSlot2OtherSlot(slot,otherslot)) {
+				continue;
+			}
 			if (otherslot.players.size() < 4) {
-				if (otherslot.acceptsPlayer(player, 2)) {
+				if (otherslot.isCompatibleWithPlayer(player)) {
 					otherslot.players.put(player.playerNr,player);
+					player.addSelectedSlot(otherslot);
 					slot.players.remove(player.playerNr);
+					player.removeSelectedSlot(slot);
 					System.out.println("Managed to shift a larger group into a G<4");
 					this.copyFromSchedule(workingSchedule);
 					return true;
@@ -492,38 +500,73 @@ public class Schedule {
 			else if (otherslot.players.size() == 4) {
 				// if all other 4 players do not accept this player, it might be an option to kick out another player (-> push) before adding new player
 				// kick out obviously only possible if consecutive push is possible for the latter!
-				if (otherslot.groupVirtuallyAcceptsPlayer(player)) {
-					// remove player from old slot and push into new one to make it 5 players in that group
+				if (! player.isADesiredSlot(otherslot)) {
+					continue;
+				}
+				// check which individual players could be kicked out to make the slot compatible with the new player
+				// the returned list is in order of highest resulting compatibility (first candidate makes slot most compatible with new player)
+				List<Player> playersToBeKickedOut = otherslot.pushPlayerAndKickOtherplayer(player);
+				if (playersToBeKickedOut.size() > 0) {
+					// attempting to push player in other slot
+					// see below: if no other player could be pushed out of otherslot successfully and a group of 5 would result, the initial push is reversed
 					slot.players.remove(player.playerNr);
+					player.removeSelectedSlot(slot);
 					otherslot.players.put(player.playerNr,player);
-//					System.out.println("Made a group of 5!");					
-					// have too many players now --> must push one to another group now!
-					Iterator<Player> otherPlayerIter = otherslot.players.values().iterator();
-					while(otherPlayerIter.hasNext()) {
-						Player otherPlayer = otherPlayerIter.next();
-						if (player.playerNr != otherPlayer.playerNr) {
-//							System.out.println("Push Level = "+pushLevel);
-							boolean pushSuccessful = workingSchedule.pushSinglePlayer(otherPlayer.playerNr, otherslot.slotId, pushLevel-1);
-							// if push successful, pushSinglePlayer will have modified schedule
-							if (pushSuccessful) {
-								this.copyFromSchedule(workingSchedule);
-//								System.out.println("Insertion was success");
-								return true;
-							}
-							// if push of that player fails, try next player
-							else {
-//								System.out.println("Insertion was no success. Trying to relocate next player in group.");
-								continue;
-							}
+					player.addSelectedSlot(otherslot);
+					for (Player playerToBeKickedOut : playersToBeKickedOut) {
+						boolean pushSuccessful = workingSchedule.pushSinglePlayer(playerToBeKickedOut.playerNr, otherslot.slotId, pushLevel-1);
+						// if push successful, pushSinglePlayer will have modified schedule
+						if (pushSuccessful) {
+							this.copyFromSchedule(workingSchedule);
+							return true;
 						}
 						else {
-//							System.out.println("Insertion was no success. Was trying to relocate same player.");
+							continue;
 						}
 					}
+					// if code has arrived here: reverse the initial push bc no other player could be pushed out from the now group of 5!
 					slot.players.put(player.playerNr,player);
+					player.addSelectedSlot(slot);
 					otherslot.players.remove(player.playerNr);
-//					System.out.println("Reversed group of 5!");
+					player.removeSelectedSlot(otherslot);
 				}
+				
+//				else if (otherslot.groupVirtuallyAcceptsPlayer(player)) {
+//					// remove player from old slot and push into new one to make it 5 players in that group
+//					slot.players.remove(player.playerNr);
+//					player.removeSelectedSlot(slot);
+//					otherslot.players.put(player.playerNr,player);
+//					player.addSelectedSlot(otherslot);
+////					System.out.println("Made a group of 5!");					
+//					// have too many players now --> must push one to another group now!
+//					Iterator<Player> otherPlayerIter = otherslot.players.values().iterator();
+//					while(otherPlayerIter.hasNext()) {
+//						Player otherPlayer = otherPlayerIter.next();
+//						if (player.playerNr != otherPlayer.playerNr) {
+////							System.out.println("Push Level = "+pushLevel);
+//							boolean pushSuccessful = workingSchedule.pushSinglePlayer(otherPlayer.playerNr, otherslot.slotId, pushLevel-1);
+//							// if push successful, pushSinglePlayer will have modified schedule
+//							if (pushSuccessful) {
+//								this.copyFromSchedule(workingSchedule);
+////								System.out.println("Insertion was success");
+//								return true;
+//							}
+//							// if push of that player fails, try next player
+//							else {
+////								System.out.println("Insertion was no success. Trying to relocate next player in group.");
+//								continue;
+//							}
+//						}
+//						else {
+////							System.out.println("Insertion was no success. Was trying to relocate same player.");
+//						}
+//					}
+//					slot.players.put(player.playerNr,player);
+//					player.addSelectedSlot(slot);
+//					otherslot.players.remove(player.playerNr);
+//					player.removeSelectedSlot(otherslot);
+////					System.out.println("Reversed group of 5!");
+//				}
 			}
 		}
 		return false;
@@ -679,7 +722,9 @@ public class Schedule {
 					if (slot.acceptsPlayer(player, 2)) {
 						Schedule initialBackupSchedule = this.clone();
 						slot.players.put(player.playerNr, player);
+						player.addSelectedSlot(slot);
 						otherslot.players.remove(player.playerNr);
+						player.removeSelectedSlot(otherslot);
 						if (pContinuePull < new Random().nextDouble()) {
 							Schedule pulledSchedule = this.clone();
 							boolean consecutivePullSuccessul = pulledSchedule.pullPlayers(otherslot.slotId, pullLevel-1, otherslot.players.size(), hardSuccessCondition);

@@ -1,6 +1,7 @@
 package tcDietlikon;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Player {
@@ -70,7 +71,51 @@ public class Player {
 		return false;
 	}
 	
+	public boolean removeSelectedSlot(Slot xSlot) {
+		Iterator<Slot> slotIter = this.selectedSlots.iterator();
+		while (slotIter.hasNext()) {
+			Slot slot = slotIter.next();
+			if (slot.isSameTimeAndDay(xSlot)) {				
+				slotIter.remove();
+				return true;
+			}
+		}
+		return false;
+	}
 	
+	public void addSelectedSlot(Slot xSlot) {
+		this.selectedSlots.add(xSlot);
+	}
+
+	// method to check if player can be moved from thisSlot to otherSlot
+	// otherslot cannot be on a day, where player already has a training slot
+	// but otherslot can be on the day, where thisSlot is dropped bc now the player is free on this day
+	public boolean canMoveThisSlot2OtherSlot(Slot thisSlot, Slot otherslot) {
+		for (Slot selectedSlot : this.selectedSlots) {
+			// do not have to check slots on the day that we are dropping the training on bc it is free again
+			if (selectedSlot.weekdayNr==thisSlot.weekdayNr) {
+				continue;
+			}
+			// check if otherslot does not interfere with selected training slots on another day
+			// if it does, player cannot be moved to that day a second time
+			if (selectedSlot.weekdayNr == otherslot.weekdayNr) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public boolean isCompatibleWithOtherPlayer(Player otherPlayer) {
+			int ageDiff = Math.abs(this.age - otherPlayer.age);
+			int classDiff = Math.abs(this.strength - otherPlayer.strength);
+			if (ageDiff > this.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff || // Default > 3.0
+				classDiff > this.maxClassDiff || classDiff > otherPlayer.maxClassDiff) { // Default > 2.0
+					return false;
+			}
+			else {
+				return true;				
+			}
+	}
 	
 }
 

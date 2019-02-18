@@ -31,9 +31,15 @@
 //		--> use to decide e.g. whether player in G3 should be moved to a G2 making it a G3
 //		--> do the push if overall linkability is improved
 //	 8. After stagnation of improvement, reshuffle groups by shifting players from one to another (may implement some measure to keep linkability!)
-//		--> 	[G2->G1]; [G3->G2]; [G4->G3];
-//	 9. After entire refine(), do same process again --> can never worsen schedule, only improve!!
-//	10. In order to push to a group of 4, may find more acceptable groups if kick out another player immediately instead of making it a group of 5, where all must accept each other!
+//		--> [G2->G1]; [G3->G2]; [G4->G3];
+//		--> refine(), do same process again --> can never worsen schedule, only improve!!
+
+//		Check if rules have actually been obeyed:
+//		- successful placement in desired slots
+//		- compatibility with other players
+//		- no other slot on same day
+
+//	 X. In order to push to a group of 4, may find more acceptable groups if kick out another player immediately instead of making it a group of 5, where all must accept each other!
 
 
 //  CAUTION
@@ -85,6 +91,7 @@ public class ScheduleGenerator {
 		schedule.calculateEfficiency();
 		schedule.refine();
 		System.out.println("Schedule efficiency AFTER refinement:");
+		schedule.calculateEfficiency();
 		
 		// groups with two or less members must be reassigned to other groups or filled with members from other groups
 		// for reassignment: check to which players (--> basket) a player can be assigned and try to put into that group
