@@ -16,6 +16,12 @@
 //		- 5 Spieler = letzte Option
 //	 8. Lieber 3-3-3 oder 1-4-4 und dann den Einer irgendwo verschachteln
 //		- 4er auffüllen wichtig generell
+//	 9. Max Age Difference? (Maybe combine with class difference)
+//		- 
+//	10. Viele Privatstunden? Können die ev. flexibel am Schluss eingefügt werden? Haben die Prio in der Setzung?
+//		- 
+//	11. Sind Mi/Fr wirklich viiiel beliebter?
+//		- 
 
 // Leute organisieren sich vorher und wollen alle in 3er Gruppe
 
@@ -33,26 +39,22 @@
 //	 8. After stagnation of improvement, reshuffle groups by shifting players from one to another (may implement some measure to keep linkability!)
 //		--> [G2->G1]; [G3->G2]; [G4->G3];
 //		--> refine(), do same process again --> can never worsen schedule, only improve!!
-
-//		Check if rules have actually been obeyed:
-//		- successful placement in desired slots
-//		- compatibility with other players
-//		- no other slot on same day
-
-//	 X. In order to push to a group of 4, may find more acceptable groups if kick out another player immediately instead of making it a group of 5, where all must accept each other!
+//	 9. pull (extendSmallGroups) procedure and shrink overful groups
 
 
-//  CAUTION
-//   1. schedule.placePlayer() never assigns player to court3 by design. can be changed anytime!
-
-
-// - Add player attributes e.g. max player strength difference, group size constraints
-// - Add current group size constraint of a schedule depending on its players
+// - X. In order to push to a group of 4, may find more acceptable groups if kick out another player immediately instead of making it a group of 5, where all must accept each other!
+// - X. Add player attributes e.g. max player strength difference, group size constraints
+// - X. Add current group size constraint of a schedule depending on its players
 // - Adapt reassigning process with constraints and preferences
+// - X. schedule.placePlayer() never assigns player to court3 by design. can be changed anytime!
+
+
+
 
 package tcDietlikon;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,43 +63,36 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 public class ScheduleGenerator {
 
+	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException, EncryptedDocumentException, InvalidFormatException {
 		
-	// create the players (or load them)
-		int nPlayers = 200;
-		Map<Integer,Player> players = PlayerUtils.createPlayers(nPlayers);
-		String playerRegistrationFile = "Template_Tennischule_Einteilung.xlsx";
-//		Map<Integer,Player> players = PlayerUtils.loadPlayers(playerRegistrationFile);
-		for (Player p : players.values()) {
-//			System.out.println("Player = "+p.notes);
-			for (Slot slot : p.desiredSlots) {
-//				System.out.println("Weekday = "+ts.weekdayNr.toString());
-//				System.out.println("TimeSlot = "+ts.slotNr.toString());				
-			}
-		}
-		
-		
-		
+	// create or load players
+	// create random players with a reasonable distribution
+		 int nPlayers = 200;
+		 Map<Integer,Player> players = PlayerUtils.createPlayers(nPlayers);
+		// XMLOps.writeToFile(players, "samplePlayers.xml");
+	// load players from actual TCD registration form
+		// String playerRegistrationFile = "Template_Tennischule_Einteilung.xlsx";
+		// Map<Integer,Player> players = PlayerUtils.loadPlayers(playerRegistrationFile);
+	// load sample players from file
+//		Map<Integer,Player> players = new HashMap<Integer,Player>();
+//		players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers.xml"));
+
 	// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);
 		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(players);
-				
+	
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
 		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
 		Schedule schedule = Schedule.initializeSchedule(players, playersSortedByPossibleCombinations, courtScheduleFile);
 		
 	// refine schedule to be more efficient
-		System.out.println("Schedule efficiency BEFORE refinement:");
-		schedule.calculateEfficiency();
+		schedule.calculateEfficiency(players, "Schedule efficiency BEFORE refinement:");
 		schedule.refine();
-		System.out.println("Schedule efficiency AFTER refinement:");
-		schedule.calculateEfficiency();
-		
-		// groups with two or less members must be reassigned to other groups or filled with members from other groups
-		// for reassignment: check to which players (--> basket) a player can be assigned and try to put into that group
-		// --> might need to remove another player (remove that one with the most combination possibilities to players not within this group)
-		
+		schedule.calculateEfficiency(players, "Schedule efficiency AFTER refinement:");
 	
+	// verify compliance of slot and player assignment -> slots feasible and players satisfied
+		schedule.verifyCompliance(players);
 		
 	// write schedule
 		schedule.write("Sommertraining_Einteilung.xlsx");

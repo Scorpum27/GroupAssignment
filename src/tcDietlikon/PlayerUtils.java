@@ -11,12 +11,7 @@ import java.util.Random;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
-//import org.apache.poi.ss.usermodel.Cell;
-//import org.apache.poi.ss.usermodel.DataFormatter;
-//import org.apache.poi.ss.usermodel.Row;
-//import org.apache.poi.ss.usermodel.Sheet;
-//import org.apache.poi.ss.usermodel.Workbook;
-//import org.apache.poi.ss.usermodel.WorkbookFactory;
+
 
 public class PlayerUtils {
 
@@ -58,36 +53,51 @@ public class PlayerUtils {
 				nSlots = 2;
 			}
 			Integer maxGroupSize;
-			if (new Random().nextDouble() < 0.9) {
+			double rand = new Random().nextDouble();
+			
+//			maxGroupSize = 4;
+			
+			if (rand < 0.83) {
 				maxGroupSize = 4;
 			}
+//			else if (rand < 0.85) {
+//				maxGroupSize = 3;
+//			}
+			else if (rand < 0.91) {
+				maxGroupSize = 2;
+			}
 			else {
-				maxGroupSize = 3;
+				maxGroupSize = 1;
 			}
 			Player player = new Player(name, playerNr, age, strength, nSlots, maxGroupSize);
 			player.maxAgeDiff = 3;
 			player.maxClassDiff = 2;
 			player.notes = notes;
-			player.desiredSlots = createNormalDistTimeSlots();
+			player.desiredSlots = createNormalDistTimeSlots(nSlots);
 			players.put(playerNr, player);
 		}
 		return players;
 	}
 	
-	public static List<Slot> createNormalDistTimeSlots() {
-		Integer nSlots;	// how many days the player can play
-		Double rSlots = new Random().nextDouble();
-		if (rSlots < 0.2) {
-			nSlots = 1;
-		}
-		else if (rSlots< 0.8){
-			nSlots = 2;
-		}
-		else {
-			nSlots = 3;
-		}
+	public static List<Slot> createNormalDistTimeSlots(Integer minAvailableDays) {
+		Integer nAvailableDays;	// how many days the player can play
+		do {
+			Double rSlots = new Random().nextDouble();
+			if (rSlots < 0.2) {
+				nAvailableDays = 1;
+			}
+			else if (rSlots< 0.6){
+				nAvailableDays = 2;
+			}
+			else if (rSlots < 0.9){
+				nAvailableDays = 3;
+			}
+			else {
+				nAvailableDays = 4;
+			}
+		}while (nAvailableDays<minAvailableDays);
 		List<Slot> slots = new ArrayList<Slot>();
-		for (int n=1; n<=nSlots; n++) {
+		for (int n=1; n<=nAvailableDays; n++) {
 			Integer weekday = 0;
 			// choose random weekday (make wednesday and friday more frequent)
 			while (weekday == 0 || containsWeekday(slots, weekday).equals(true)) {
@@ -166,15 +176,43 @@ public class PlayerUtils {
 							player.linkablePlayers.add(otherPlayer.playerNr);
 				}
 			}
+			if (player.maxGroupSize==1) {
+				player.linkability = 0.0;
+			}
+			else if (player.maxGroupSize==2) {
+				player.linkability = 0.33*player.linkablePlayers.size();
+			}
+			else if (player.maxGroupSize==3) {
+				player.linkability = 0.5*player.linkablePlayers.size();
+			}
+			else {
+				player.linkability = 1.0*player.linkablePlayers.size();
+			}
 		}
 	}
 
 	public static boolean checkForSameSlots(Player player, Player otherPlayer) {
 		for (Slot slot: player.desiredSlots) {
 			for (Slot otherSlot : otherPlayer.desiredSlots) {
+//				System.out.println("Slot 1 Time = "+slot.time);
+//				System.out.println("Slot 2 Time = "+otherSlot.time);
+//				System.out.println("Slot 1 Day = "+slot.weekdayNr);
+//				System.out.println("Slot 2 Day = "+otherSlot.weekdayNr);
+//				System.out.println("Day Class = "+otherSlot.weekdayNr.getClass().toString());
+//				if (slot.weekdayNr.equals(otherSlot.weekdayNr)) {	// slot.time==otherSlot.time &&
+//				if (slot.weekdayNr==otherSlot.weekdayNr) {	// slot.time==otherSlot.time && 
+////					System.out.println(slot.weekdayNr.getClass().toString());
+//					System.out.println("Yes!");
+//					return true;
+//				}
+//				else {
+////					System.out.println("No! "+(slot.weekdayNr-otherSlot.weekdayNr));
+//				}
 				if (slot.isSameTimeAndDay(otherSlot)) {
+//					System.out.println("Yes!");
 					return true;
 				}
+				
 			}
 		}
 		return false;
@@ -189,7 +227,7 @@ public class PlayerUtils {
 			else {
 				int rank = 0;
 				for (Player otherPlayer : sortedPlayers) {
-					if (player.linkablePlayers.size()<otherPlayer.linkablePlayers.size()) {
+					if (player.linkability < otherPlayer.linkability) {
 						break;
 					}
 					else {

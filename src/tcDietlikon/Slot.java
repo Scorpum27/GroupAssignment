@@ -5,15 +5,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class Slot {
 
-	Integer weekdayNr = 0;
+	int weekdayNr = 0;
 		// 1 = Monday; 2 = Tuesday; ...
-	Integer time = 0;
+	int time = 0;
 		// 8 = 0800-0900; 16 = 1600-1700; etc.
-	Integer courtNr;
-	Integer slotId;
+	int courtNr;
+	int slotId;
 	Map<Integer,Player> players;
 	
 	Slot(){	
@@ -50,25 +51,25 @@ public class Slot {
 		return copy;
 	}
 	
-	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
-		if (! player.isADesiredSlot(this)) {
-			return false;
-		}
-		for (Slot slot : player.selectedSlots) {
-			if (this.weekdayNr == slot.weekdayNr) {
-				return false;
-			}
-		}
-		for (Player otherPlayer : this.players.values()) {
-			int ageDiff = Math.abs(player.age-otherPlayer.age);
-			int classDiff = Math.abs(player.strength-otherPlayer.strength);
-			if (ageDiff > player.maxAgeDiff  ||  ageDiff > otherPlayer.maxAgeDiff	||				// Default > 3.0
-				classDiff > player.maxClassDiff  ||  classDiff > otherPlayer.maxClassDiff) {		// Default > 2.0
-				return false;
-			}
-		}
-		return true;
-	}
+//	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
+//		if (! player.isADesiredSlot(this)) {
+//			return false;
+//		}
+//		for (Slot slot : player.selectedSlots) {
+//			if (this.weekdayNr == slot.weekdayNr) {
+//				return false;
+//			}
+//		}
+//		for (Player otherPlayer : this.players.values()) {
+//			int ageDiff = Math.abs(player.age-otherPlayer.age);
+//			int classDiff = Math.abs(player.strength-otherPlayer.strength);
+//			if (ageDiff > player.maxAgeDiff  ||  ageDiff > otherPlayer.maxAgeDiff	||				// Default > 3.0
+//				classDiff > player.maxClassDiff  ||  classDiff > otherPlayer.maxClassDiff) {		// Default > 2.0
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
 	
 	public Boolean acceptsPlayer(Player player, int strategy) {
 		// loop to ensure that a player is not assigned two slots on the same weekday if he wants to train more than once
@@ -78,6 +79,17 @@ public class Slot {
 				return false;
 			}
 		}
+		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
+		// +1 because considering case where another player is to be added
+		if (player.maxGroupSize < this.players.size()+1) {
+			return false;
+		}
+		for (Player otherPlayer : this.players.values()) {
+			if (otherPlayer.maxGroupSize < this.players.size()+1) {
+				return false;
+			}
+		}
+		
 		// STRATEGY 0: add player only in an already activated slot (i.e. that has already been added a player)
 		// max 4 players/group; class/age constraints; only desired slots;
 		if (strategy == 0) {
@@ -201,7 +213,10 @@ public class Slot {
 	public List<Player> pushPlayerAndKickOtherplayer(Player player) {
 		Map<Player,Double> kickoutCandidates = new HashMap<Player,Double>();
 		List<Player> kickoutCandidatesList = new ArrayList<Player>();
-		if (! player.isADesiredSlot(this)) {
+		// check that desired slot
+		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
+		// +1 because considering case where another player is to be added
+		if (! player.isADesiredSlot(this) || player.maxGroupSize < this.players.size()) {
 			// returns empty list indicating that no possibility of a push and kick
 			return kickoutCandidatesList;
 		}
@@ -242,23 +257,30 @@ public class Slot {
 				kickoutCandidates.put(playerOut,1.0*(Math.abs(maxClass-minClass))+0.5*(Math.abs(maxAge-minAge)));
 			}
 		}
-		// sort the kick-out candidates by the compatibility that they leave for the group i.e. how small the max. class and age difference is
-		for (Player kickoutPlayer : kickoutCandidates.keySet()) {
-			if (kickoutCandidatesList.size()==0) {
-				kickoutCandidatesList.add(kickoutPlayer);
-			}
-			else {
-				int position = 0;
-				int insertPosition = kickoutCandidatesList.size(); // initialize with last possible position in case loop does not hit worse candidate before
-				for (Player sortedKickoutPlayer : kickoutCandidatesList) {
-					if (kickoutCandidates.get(kickoutPlayer)<kickoutCandidates.get(sortedKickoutPlayer)) {
-						insertPosition = position;
-						break;
-					}
-					position++;
+		// with a high probability sort the kick-out candidates by the compatibility that they leave for the group
+		// i.e. how small the max. class and age difference is
+		// with a low probability, keep the order as is
+		if (new Random().nextDouble()<0.95) {
+			for (Player kickoutPlayer : kickoutCandidates.keySet()) {
+				if (kickoutCandidatesList.size()==0) {
+					kickoutCandidatesList.add(kickoutPlayer);
 				}
-				kickoutCandidatesList.add(insertPosition, kickoutPlayer);
+				else {
+					int position = 0;
+					int insertPosition = kickoutCandidatesList.size(); // initialize with last possible position in case loop does not hit worse candidate before
+					for (Player sortedKickoutPlayer : kickoutCandidatesList) {
+						if (kickoutCandidates.get(kickoutPlayer)<kickoutCandidates.get(sortedKickoutPlayer)) {
+							insertPosition = position;
+							break;
+						}
+						position++;
+					}
+					kickoutCandidatesList.add(insertPosition, kickoutPlayer);
+				}
 			}
+		}
+		else {
+			kickoutCandidatesList.addAll(kickoutCandidates.keySet());
 		}
 		return kickoutCandidatesList;
 	}
@@ -272,9 +294,67 @@ public class Slot {
 				return false;
 			}
 		}
+		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
+		// +1 because considering case where another player is to be added
+		if (player.maxGroupSize < this.players.size()+1) {
+			return false;
+		}
+		for (Player otherPlayer : this.players.values()) {
+			if (otherPlayer.maxGroupSize < this.players.size()+1) {
+				return false;
+			}
+		}
 		if (!player.isADesiredSlot(this)) {
 			return false;
 		}
 		return true;
+	}
+
+	public int limitingPlayerMaxGroupSize() {
+		int limitingMaxGroupSize = 4;
+		for (Player player : this.players.values()) {
+			if (player.maxGroupSize<limitingMaxGroupSize) {
+				limitingMaxGroupSize = player.maxGroupSize;
+			}
+		}
+		return limitingMaxGroupSize;
+	}
+
+	public boolean isPreferableDayToOtherSlot(Slot otherSlot) {
+		int thisSlotDayCategory = dayPlacementCategory(this.weekdayNr);
+		int otherSlotDayCategory = dayPlacementCategory(otherSlot.weekdayNr);
+		if (thisSlotDayCategory > otherSlotDayCategory) {
+			// higher category means lower demand e.g. Monday is not as popular as Wednesday
+			return true;
+		}
+		else {
+			return false;			
+		}
+	}
+
+	public int dayPlacementCategory(Integer weekdayNr) {
+		if (weekdayNr==3) {
+			return 1; // Wednesday!
+		}
+		else if(weekdayNr==5) {
+			return 2; // Friday
+		}
+		else if (Arrays.asList(1,2,4).contains(weekdayNr)) {
+			return 3; // Monday, Tuesday, Thursday 
+		}
+		else {
+			return 1000;			
+		}
+	}
+
+	public boolean dayIsSamePreferenceAsOtherSlot(Slot otherSlot) {
+		int thisSlotDayCategory = dayPlacementCategory(this.weekdayNr);
+		int otherSlotDayCategory = dayPlacementCategory(otherSlot.weekdayNr);
+		if (thisSlotDayCategory == otherSlotDayCategory) {
+			return true;
+		}
+		else {
+			return false;			
+		}
 	}
 }

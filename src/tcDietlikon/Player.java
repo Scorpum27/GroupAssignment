@@ -7,18 +7,21 @@ import java.util.List;
 public class Player {
 	
 	String name;
-	Integer playerNr;
+	int playerNr;
 	String notes;
-	Integer age;
-	Integer nSlots;
-	Integer maxGroupSize;
-	Integer strength;
+	int age;
+	int nSlots;
+	boolean slotNrSatisfied = true;
+	int maxGroupSize;
+	int strength;
 	List<Slot> desiredSlots;
 	List<Slot> selectedSlots;
-	Integer maxAgeDiff;
-	Integer maxClassDiff;
+	int maxAgeDiff;
+	int maxClassDiff;
 	List<Integer> linkablePlayers;
-	Integer placementRound;
+	int worstPlacementRound = -1;
+	double linkability = 0.0;
+	List<Slot> undesirablePlacements = new ArrayList<Slot>();
 	
 	public Player clone() {
 		Player copy = new Player();
@@ -27,19 +30,24 @@ public class Player {
 		copy.notes = this.notes;
 		copy.age = this.age;
 		copy.nSlots = this.nSlots;
+		copy.slotNrSatisfied = this.slotNrSatisfied;
 		copy.maxGroupSize = this.maxGroupSize;
 		copy.strength = this.strength;
 		copy.maxAgeDiff = this.maxAgeDiff;
 		copy.maxClassDiff = this.maxClassDiff;
-		copy.placementRound = this.placementRound;
+		copy.worstPlacementRound = this.worstPlacementRound;
+		copy.linkability = this.linkability;
 		for (Integer linkablePlayerNr : this.linkablePlayers) {
 			copy.linkablePlayers.add(linkablePlayerNr);
 		}
-		for (Slot desiredSlot : desiredSlots) {
+		for (Slot desiredSlot : this.desiredSlots) {
 			copy.desiredSlots.add(desiredSlot);
 		}
-		for (Slot selectedSlot : selectedSlots) {
+		for (Slot selectedSlot : this.selectedSlots) {
 			copy.selectedSlots.add(selectedSlot);
+		}
+		for (Slot undesirableSlot : this.undesirablePlacements) {
+			copy.undesirablePlacements.add(undesirableSlot);
 		}
 		return copy;
 	}
@@ -106,15 +114,14 @@ public class Player {
 	}
 
 	public boolean isCompatibleWithOtherPlayer(Player otherPlayer) {
-			int ageDiff = Math.abs(this.age - otherPlayer.age);
-			int classDiff = Math.abs(this.strength - otherPlayer.strength);
-			if (ageDiff > this.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff || // Default > 3.0
-				classDiff > this.maxClassDiff || classDiff > otherPlayer.maxClassDiff) { // Default > 2.0
-					return false;
-			}
-			else {
-				return true;				
-			}
+		int ageDiff = Math.abs(this.age - otherPlayer.age);
+		int classDiff = Math.abs(this.strength - otherPlayer.strength);
+		if (ageDiff > this.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff || 				// Default > 3.0
+				classDiff > this.maxClassDiff || classDiff > otherPlayer.maxClassDiff) { 	// Default > 2.0
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 }
