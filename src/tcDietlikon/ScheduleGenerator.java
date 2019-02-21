@@ -70,27 +70,26 @@ public class ScheduleGenerator {
 		
 	// create or load players
 	// create random players with a reasonable distribution
-		 int nPlayers = 200;
-		 Map<Integer,Player> players = PlayerUtils.createPlayers(nPlayers);
-		// XMLOps.writeToFile(players, "samplePlayers.xml");
+//		 int nPlayers = 200;
+//		 Map<Integer,Player> players = PlayerUtils.createPlayers(nPlayers);
+//		 XMLOps.writeToFile(players, "samplePlayers.xml");
 	// load players from actual TCD registration form
 		// String playerRegistrationFile = "Template_Tennischule_Einteilung.xlsx";
 		// Map<Integer,Player> players = PlayerUtils.loadPlayers(playerRegistrationFile);
 	// load sample players from file
-//		Map<Integer,Player> players = new HashMap<Integer,Player>();
-//		players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers.xml"));
+		Map<Integer,Player> players = new HashMap<Integer,Player>();
+		players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers.xml"));
 
 	// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);
-		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(players);
 		
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
 		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
-		Schedule schedule = Schedule.initializeSchedule(players, playersSortedByPossibleCombinations, courtScheduleFile);
+		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile);
 		
 	// refine schedule to be more efficient
 		schedule.calculateEfficiency(players, "Schedule efficiency BEFORE refinement:");
-		schedule.refine();
+		schedule.refine(players);
 		schedule.calculateEfficiency(players, "Schedule efficiency AFTER refinement:");
 	
 	// verify compliance of slot and player assignment -> slots feasible and players satisfied

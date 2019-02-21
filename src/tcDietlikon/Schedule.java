@@ -7,13 +7,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
-
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -31,6 +28,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class Schedule {
 
 	Map<Integer,Slot> slots = new HashMap<Integer,Slot>();
+	Map<Integer,Player> players = new HashMap<Integer,Player>();
 	int nCourts = 0;
 	int nDays = 0;
 	int firstHour = 0;
@@ -143,9 +141,12 @@ public class Schedule {
 	}
 	
 	
-public static Schedule initializeSchedule(Map<Integer, Player> players, List<Player> playersSortedByPossibleCombinations, String courtScheduleFile) throws EncryptedDocumentException, InvalidFormatException, IOException {
+	public static Schedule initializeSchedule(Map<Integer, Player> players, String courtScheduleFile) throws EncryptedDocumentException, InvalidFormatException, IOException {
 		
 		Schedule schedule = new Schedule(courtScheduleFile); 	// initializes schedule with slots when courts are free (see excel file)
+		schedule.players.putAll(players);
+		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(schedule.players);
+		
 		int unsuccessfulPlacements = 0;
 		// Fill in players with max group size 4 before more limited group sizes: G4 before G3 before G2 before G1 (players with maxGroupSize G"X")
 		for (int maxGroupSizePlacementRound : Arrays.asList(4,3,2,1)) {
@@ -165,7 +166,7 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 				}
 			}
 		}
-		for (Player player : players.values()) {
+		for (Player player : schedule.players.values()) {
 			if (Arrays.asList(3, 4, 5).contains(player.worstPlacementRound)) {
 				System.out.println("Strategy for player " + player.playerNr + " = " + player.worstPlacementRound);
 			}
@@ -173,7 +174,6 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 		System.out.println("Number of unsuccessful placements = " + unsuccessfulPlacements);
 		return schedule;
 	}
-	
 	
 	public Integer placePlayer(Player player, int strategy) {
 	// make rules when placing player
@@ -291,6 +291,8 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 		return unsuccessfulPlacementsThisPlayerAndRound;
 	}
 
+	
+
 	public int slot2row(int time) {
 		return 2+(time-this.firstHour)*7;
 	}
@@ -391,7 +393,7 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 	
 
 	
-	public void refine() {
+	public void refine(Map<Integer, Player> players) {
 		for (int groupSize : Arrays.asList(1,2,3,4)) {
 			this.breakUpGroups(groupSize);
 		}
@@ -403,6 +405,14 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 		}
 		int maxDesirableGroupSize = 4;
 //		this.shrinkOverfullGroups(maxDesirableGroupSize);
+		
+		// we change the schedule and take notice in the player selectedSlots
+		// we do this within cloned schedules that refer internally to their players list
+		// however, the initially loaded players do not take notice this way and are not up-to-date with their selectedSlots
+		// therefore, they are synced with the refined schedule here
+		// --> empty original players list and insert the same but updated players from the refined schedule
+		players.clear();
+		players.putAll(this.players);
 	}
 
 
@@ -455,8 +465,11 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 
 	public Schedule clone() {
 		Schedule copy = new Schedule();
-		for (Entry<Integer, Slot> entry : this.slots.entrySet()) {
-			copy.slots.put(entry.getKey(), entry.getValue().clone());
+		for (Entry<Integer, Slot> slot : this.slots.entrySet()) {
+			copy.slots.put(slot.getKey(), slot.getValue().clone());
+		}
+		for (Entry<Integer, Player> player : this.players.entrySet()) {
+			copy.players.put(player.getKey(), player.getValue().clone());
 		}
 		copy.firstHour = this.firstHour;
 		copy.lastHour = this.lastHour;
@@ -664,45 +677,9 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 					otherslot.players.remove(player.playerNr);
 					player.removeSelectedSlot(otherslot);
 				}
-				
-//				else if (otherslot.groupVirtuallyAcceptsPlayer(player)) {
-//					// remove player from old slot and push into new one to make it 5 players in that group
-//					slot.players.remove(player.playerNr);
-//					player.removeSelectedSlot(slot);
-//					otherslot.players.put(player.playerNr,player);
-//					player.addSelectedSlot(otherslot);
-////					System.out.println("Made a group of 5!");					
-//					// have too many players now --> must push one to another group now!
-//					Iterator<Player> otherPlayerIter = otherslot.players.values().iterator();
-//					while(otherPlayerIter.hasNext()) {
-//						Player otherPlayer = otherPlayerIter.next();
-//						if (player.playerNr != otherPlayer.playerNr) {
-////							System.out.println("Push Level = "+pushLevel);
-//							boolean pushSuccessful = workingSchedule.pushSinglePlayer(otherPlayer.playerNr, otherslot.slotId, pushLevel-1);
-//							// if push successful, pushSinglePlayer will have modified schedule
-//							if (pushSuccessful) {
-//								this.copyFromSchedule(workingSchedule);
-////								System.out.println("Insertion was success");
-//								return true;
-//							}
-//							// if push of that player fails, try next player
-//							else {
-////								System.out.println("Insertion was no success. Trying to relocate next player in group.");
-//								continue;
-//							}
-//						}
-//						else {
-////							System.out.println("Insertion was no success. Was trying to relocate same player.");
-//						}
-//					}
-//					slot.players.put(player.playerNr,player);
-//					player.addSelectedSlot(slot);
-//					otherslot.players.remove(player.playerNr);
-//					player.removeSelectedSlot(otherslot);
-////					System.out.println("Reversed group of 5!");
-//				}
 			}
 		}
+
 		return false;
 	}
 
@@ -885,6 +862,10 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 		this.slots.clear();
 		for (Slot slot : scheduleToCopyFrom.slots.values()) {
 			this.slots.put(slot.slotId, slot.clone());
+		}
+		this.players.clear();
+		for (Player player : scheduleToCopyFrom.players.values()) {
+			this.players.put(player.playerNr, player.clone());
 		}
 	}
 
