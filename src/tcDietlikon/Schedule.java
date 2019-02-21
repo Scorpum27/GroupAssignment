@@ -133,7 +133,7 @@ public class Schedule {
 				for (Integer c=1; c<=this.nCourts; c++) {
 					if (dataFormatter.formatCellValue(courtSheet.getRow(r).getCell((d-1)*this.nCourts+c)).equals("x")) {
 						this.slots.put(slotId, new Slot(slotId, d, h, c));
-						System.out.println("Day/Hour/Court = "+d+"/"+h+"/"+c);
+//						System.out.println("Day/Hour/Court = "+d+"/"+h+"/"+c);
 						slotId++;						
 					}
 				}
@@ -209,11 +209,12 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 		// c] Fill into largest possible group! (Strategy 0 makes sure only activated slots are used if feasible i.e. min. 1 player)
 		// d] Maybe use Monday, Tuesday, Thursday first (see real registrations if Wednesday & Friday are really much more desirable)
 		// e] Use earliest slots every day!
-		// : 
+		//
 		
 		Integer unsuccessfulPlacementsThisPlayerAndRound = 0;
 		// try to assign to player as many slots as it still needs to satisfy its number of desired lessons (#desiredSlots-#alreadySelectedSlots)
-		for (int s=1; s<=player.nSlots-player.selectedSlots.size(); s++) {
+		int nrOfNotYetAssignedSlots = player.nSlots-player.selectedSlots.size();
+		for (int s=1; s<=nrOfNotYetAssignedSlots; s++) {	// 		for (int s=1; s<=player.nSlots-player.selectedSlots.size(); s++) {
 			Slot currentlyOptimalSlot = null;
 //					List<Slot> currentlyLargestFeasibleSlots = new ArrayList<Slot>();
 			// b] Fill in a G3 first into a G3 before a G4 --> start by filling into groups with same maxGroupSize.
@@ -272,7 +273,7 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 			}
 			if (currentlyOptimalSlot != null) {
 				currentlyOptimalSlot.players.put(player.playerNr, player);
-				player.addSelectedSlot(new Slot(currentlyOptimalSlot.slotId, currentlyOptimalSlot.weekdayNr, currentlyOptimalSlot.time, currentlyOptimalSlot.courtNr));
+				player.addSelectedSlot(currentlyOptimalSlot);
 				if (strategy>player.worstPlacementRound) {
 					player.worstPlacementRound = strategy;					
 				}
@@ -500,7 +501,8 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 // ---
 		}
 		// if all pushes were successful, take pushedSchedule and set as active schedule for further refinement process
-		this.copyFromSchedule(pushedSchedule);			
+		this.copyFromSchedule(pushedSchedule);
+		// TODO may update players with selected slots here
 		return true;
 	}
 
@@ -983,7 +985,7 @@ public static Schedule initializeSchedule(Map<Integer, Player> players, List<Pla
 //						System.out.println("ERROR: Two slots on same day!");
 //					}
 					else {
-						System.out.println("SameDaySlot OK!");
+//						System.out.println("SameDaySlot OK!");
 					}
 				}
 			}

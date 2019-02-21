@@ -240,9 +240,9 @@ public class PlayerUtils {
 				
 			}
 		}
-		for (Player player: sortedPlayers) {
-			System.out.println(player.linkablePlayers.size());
-		}
+//		for (Player player: sortedPlayers) {
+//			System.out.println(player.linkablePlayers.size());
+//		}
 		
 		return sortedPlayers;
 	}

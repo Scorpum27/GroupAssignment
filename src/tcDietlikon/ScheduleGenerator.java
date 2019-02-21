@@ -49,6 +49,8 @@
 // - X. schedule.placePlayer() never assigns player to court3 by design. can be changed anytime!
 
 
+//Next steps: Make sure reference to player is always the same when pushing players
+//Make alternative where players are stored in a schedule and passed on through the schedule itself... also through the method and cloning!!
 
 
 package tcDietlikon;
@@ -81,7 +83,7 @@ public class ScheduleGenerator {
 	// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);
 		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(players);
-	
+		
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
 		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
 		Schedule schedule = Schedule.initializeSchedule(players, playersSortedByPossibleCombinations, courtScheduleFile);
