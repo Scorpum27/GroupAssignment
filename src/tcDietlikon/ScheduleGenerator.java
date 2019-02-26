@@ -1,63 +1,42 @@
 
 //  QUESTIONS
-//   1. Wie schlimm ist die Benutzung des mittleren Felds?
-//		- kein Problem
-//   2. Was ist die minimale Spieleranzahl pro Gruppe?
-//		- Privat/Halbprivat siehe Anmeldung
-//   3. Was ist schlimmer, eine 5er-Gruppe oder wenn ein Spielzeitwunsch nicht berücksichtigt werden kann?
-//		- Tel --> Make proposals --> dann 5er-Gruppe
-//	 4. Verfügbare Courts? Innen/aussen?
-//		- 3!
-//	 5. Spätester Trainingsbeginn
-//		- 1 Siehe Courtschedule
-//   6. Unterschiede zum Wintertraining (um das Programm globaler zu machen)?
+//   
+//   1. Unterschiede zum Wintertraining (um das Programm globaler zu machen)?
 //		- Im Winter generell bis 2000 - dann Fixplätze vermietet (selten Ausnahmen)
-//	 7. Lieber 3 oder 5 Spieler in einer Gruppe?
-//		- 5 Spieler = letzte Option
-//	 8. Lieber 3-3-3 oder 1-4-4 und dann den Einer irgendwo verschachteln
-//		- 4er auffüllen wichtig generell
-//	 9. Max Age Difference? (Maybe combine with class difference)
+//	 2. Max Age Difference? (Maybe combine with class difference)
 //		- 
-//	10. Viele Privatstunden? Können die ev. flexibel am Schluss eingefügt werden? Haben die Prio in der Setzung?
+//	 3. Viele Privatstunden? Können die ev. flexibel am Schluss eingefügt werden? Haben die Prio in der Setzung?
 //		- 
-//	11. Sind Mi/Fr wirklich viiiel beliebter?
+//	 4. Sind Mi/Fr wirklich viiiel beliebter?
 //		- 
 
-// Leute organisieren sich vorher und wollen alle in 3er Gruppe
+// nTot = 
+// TX = one category!
+// 10-15% undesired slots
 
 
-//  IDEAS
-//   1. May combine age and class difference in differenceFunction
-//   2. May place stronger class more easily in a weaker group or vice versa?
-//   3. Manual inputs for very strong players
-//	 4. Player placement: May try first days, where the player can start playing early (not that important )
-//	 5. Place player in biggest already existing group instead of first best group with lowest strategy!!
-//	 6. General possibility for placing manually players
-//	 7. Recalculate linkable players to a group after groups have been formed
-//		--> use to decide e.g. whether player in G3 should be moved to a G2 making it a G3
-//		--> do the push if overall linkability is improved
-//	 8. After stagnation of improvement, reshuffle groups by shifting players from one to another (may implement some measure to keep linkability!)
-//		--> [G2->G1]; [G3->G2]; [G4->G3];
-//		--> refine(), do same process again --> can never worsen schedule, only improve!!
-//	 9. pull (extendSmallGroups) procedure and shrink overful groups
-
-
-// - X. In order to push to a group of 4, may find more acceptable groups if kick out another player immediately instead of making it a group of 5, where all must accept each other!
-// - X. Add player attributes e.g. max player strength difference, group size constraints
-// - X. Add current group size constraint of a schedule depending on its players
-// - Adapt reassigning process with constraints and preferences
-// - X. schedule.placePlayer() never assigns player to court3 by design. can be changed anytime!
-
-
-//Next steps: Make sure reference to player is always the same when pushing players
-//Make alternative where players are stored in a schedule and passed on through the schedule itself... also through the method and cloning!!
-
+// IDEAS & TUNING
+// XXX DATA-SET --> make list of most wanted slots and fill in accordingly maybe rather place players first in desirable slots!!! 
+//		--> in initial place players
+//		--> in currentlyOptimalReceiverSlot
+// XXX DATA-SET may actually try lower push levels
+// XXX DATA-SET may have to remove sender group size G4 again
+// XXX Try to explicitly push players with undesired slots! --> may just change their current undesired slot to another slot and then be combinable!!
+// XXX Dijkstra strategies!!
+// - Where do the differences between actual total and desired total come from?
+// - strategies to shuffle players into unused slots to open them up! (maybe whole groups?)
+// - initial player placing --> maybe more random? (first best placement?)
+// - stagnation: reshuffle groups by shifting players from one to another improving their overall linkability or age/class differences --> then refine() again?
+// - pull procedures
+// - manual inputs for very strong players
+// - increase pushLevels for very long runs (maybe not even better!)
+// - order of strategies (current optimal = shift&push, then break)
+// - shift/push only until size, and not size-1 for possibly better performance (probably not better!)
 
 package tcDietlikon;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.EncryptedDocumentException;
@@ -67,29 +46,39 @@ public class ScheduleGenerator {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException, EncryptedDocumentException, InvalidFormatException {
-		
+	
+		int pushLevel = 4;
+		boolean createNewPlayerSet = false;
+		boolean useFixedSlotFile = false;
+		int initialPlacementStrategy = 2;
+
 	// create or load players
-	// create random players with a reasonable distribution
-//		 int nPlayers = 200;
-//		 Map<Integer,Player> players = PlayerUtils.createPlayers(nPlayers);
-//		 XMLOps.writeToFile(players, "samplePlayers.xml");
+		Map<Integer,Player> players = new HashMap<Integer,Player>();
+		// create random players with a reasonable distribution
+		if (createNewPlayerSet) {
+			int nPlayers = 200;
+			players = PlayerUtils.createPlayers(nPlayers);
+			XMLOps.writeToFile(players, "samplePlayers.xml");
+		}
+		else {
+			players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers.xml"));			
+		}
 	// load players from actual TCD registration form
 		// String playerRegistrationFile = "Template_Tennischule_Einteilung.xlsx";
 		// Map<Integer,Player> players = PlayerUtils.loadPlayers(playerRegistrationFile);
 	// load sample players from file
-		Map<Integer,Player> players = new HashMap<Integer,Player>();
-		players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers.xml"));
 
 	// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);
 		
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
 		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
-		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile);
+		String fixedGroupsFile = "Fixe_Gruppen.xlsx";
+		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile, initialPlacementStrategy, fixedGroupsFile, useFixedSlotFile);
 		
 	// refine schedule to be more efficient
 		schedule.calculateEfficiency(players, "Schedule efficiency BEFORE refinement:");
-		schedule.refine(players);
+		schedule.refine(players, pushLevel);
 		schedule.calculateEfficiency(players, "Schedule efficiency AFTER refinement:");
 	
 	// verify compliance of slot and player assignment -> slots feasible and players satisfied

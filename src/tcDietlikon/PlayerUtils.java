@@ -3,6 +3,9 @@ package tcDietlikon;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +78,39 @@ public class PlayerUtils {
 			player.notes = notes;
 			player.desiredSlots = createNormalDistTimeSlots(nSlots);
 			players.put(playerNr, player);
+			// make special categories here and adapt player if they fall into special category
+			double rS = new Random().nextDouble();
+			if (rS<0.40) {
+				player.category="default";
+			}
+			else if(rS<0.60) {
+				player.category = "TC";
+				player.strength = 20;
+				player.maxAgeDiff = 100;
+				player.maxClassDiff = 0;
+				player.maxGroupSize = 8;
+			}
+			else if(rS<0.73) {
+				player.category = "G";
+				player.strength = 21;
+				player.maxAgeDiff = 100;
+				player.maxClassDiff = 0;
+				player.maxGroupSize = 4;
+			}
+			else if(rS<0.86) {
+				player.category = "O";
+				player.strength = 22;
+				player.maxAgeDiff = 100;
+				player.maxClassDiff = 0;
+				player.maxGroupSize = 4;
+			}
+			else if (rS<=1.00) {
+				player.category = "R";
+				player.strength = 23;
+				player.maxAgeDiff = 100;
+				player.maxClassDiff = 0;
+				player.maxGroupSize = 4;
+			}
 		}
 		return players;
 	}
@@ -248,6 +284,11 @@ public class PlayerUtils {
 	}
 
 	public static Map<Integer, Player> loadPlayers(String file) throws EncryptedDocumentException, InvalidFormatException, IOException {
+
+		Date date = new Date();
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(date);
+		int year = calendar.get(Calendar.YEAR);
 		
 		// initialize to hold players in a map with a number each
 		Map<Integer,Player> players = new HashMap<Integer,Player>();
@@ -269,26 +310,86 @@ public class PlayerUtils {
         		playerCounter++;
         		Integer playerNr = playerCounter;
         		String name = dataFormatter.formatCellValue(row.getCell(0));
-        		// have to parse player strength as it is given with prefix "R" or "N"
+        		// players have different categories
+        		// if normal junior category: have to parse player strength as it is given with prefix "R" or "N"
+        		// for slot categories instead of solely using player strength may change the following:
+        		// - Slot.acceptsPlayer()
+        		// - ...
+        		String category;
         		String strengthString = dataFormatter.formatCellValue(row.getCell(1));
         		Integer strength;
-        		if (strengthString.contains("R")) {
+        		Integer maxAgeDiff;
+        		Integer maxClassDiff;
+        		// Special groups TC, R, O, G:
+        		//  --> age does not matter for special
+        		//  --> can only be combined with same strength, which denotes the exact category (inside the category there is no differentiation)
+        		// Normal Rx or Nx players have maxClassDiff=2 and maxAgeDiff=3
+        		if (strengthString.equals("TC")) {
+        			strength = 20;
+        			category = "TC";
+        			maxAgeDiff = 100;
+        			maxClassDiff = 0;
+        		}
+        		else if (strengthString.equals("G")){
+        			strength = 21;
+        			category = "G";
+        			maxAgeDiff = 100;
+        			maxClassDiff = 0;
+        		}
+        		
+        		else if (strengthString.equals("O")){
+        			strength = 22;
+        			category = "O";
+        			maxAgeDiff = 100;
+        			maxClassDiff = 0;
+        		}
+        		else if (strengthString.equals("R")){
+        			strength = 23;
+        			category = "R";
+        			maxAgeDiff = 100;
+        			maxClassDiff = 0;
+        		}
+        		else if (strengthString.contains("R")) {
         			strength = Integer.parseInt(strengthString.substring(1));
+        			category = "default";
+        			maxAgeDiff = 3;
+        			maxClassDiff = 2;
         		}
         		else if (strengthString.contains("N")) {
-        			strength = -5+Integer.parseInt(strengthString.substring(1));
+        			strength = -4+Integer.parseInt(strengthString.substring(1));
+        			category = "default";
+        			maxAgeDiff = 3;
+        			maxClassDiff = 2;
         		}
         		else {
         			System.out.println("This player does not have a valid rank. Assigning R9 strength to player "+name);
         			strength = 9;
+        			category = "unknown";
+        			maxAgeDiff = 3;
+        			maxClassDiff = 2;
         		}
-        		Integer age = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(2)));
+        		String ageString = dataFormatter.formatCellValue(row.getCell(2));
+        		Integer age;
+        		if (ageString.equals("E")) {
+        			// set age=21, so that all adults can play together and possibly also with an 18-year-old by the 3-year difference
+        			age = year - 21;
+        		}
+        		else {
+        			age = Integer.parseInt(ageString);
+        		}
         		Integer nSlots = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(3)));
-        		Integer maxGroupSize = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(4)));
+        		Integer maxGroupSize;
+        		if (strength==20) {
+        			// XXX maybe this is not even necessary as the 8 should be typed into the registration table!
+        			maxGroupSize = 8;
+        		}
+        		else {
+        			maxGroupSize = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(4)));        			
+        		}
 
-        		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize);
-        		newPlayer.maxAgeDiff = 3;
-        		newPlayer.maxClassDiff = 2;
+        		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize, category);
+        		newPlayer.maxAgeDiff = maxAgeDiff;
+        		newPlayer.maxClassDiff = maxClassDiff;
         		players.put(playerCounter, newPlayer);
         		
         		for (int slotRowNr=r+1; slotRowNr<= r+6; slotRowNr++) {
