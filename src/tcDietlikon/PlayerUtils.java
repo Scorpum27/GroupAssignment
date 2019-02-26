@@ -212,18 +212,19 @@ public class PlayerUtils {
 							player.linkablePlayers.add(otherPlayer.playerNr);
 				}
 			}
-			if (player.maxGroupSize==1) {
-				player.linkability = 0.0;
-			}
-			else if (player.maxGroupSize==2) {
-				player.linkability = 0.33*player.linkablePlayers.size();
-			}
-			else if (player.maxGroupSize==3) {
-				player.linkability = 0.5*player.linkablePlayers.size();
-			}
-			else {
-				player.linkability = 1.0*player.linkablePlayers.size();
-			}
+//			if (player.maxGroupSize==1) {
+//				player.linkability = 0.0;
+//			}
+//			else if (player.maxGroupSize==2) {
+//				player.linkability = 0.33*player.linkablePlayers.size();
+//			}
+//			else if (player.maxGroupSize==3) {
+//				player.linkability = 0.5*player.linkablePlayers.size();
+//			}
+//			else {
+//				player.linkability = 1.0*player.linkablePlayers.size();
+//			}
+			player.linkability = 1.0*player.linkablePlayers.size();
 		}
 	}
 
@@ -254,6 +255,7 @@ public class PlayerUtils {
 		return false;
 	}
 
+	// sort players by their linkability (highest linkability has lowest rank and is first in list)
 	public static List<Player> sortByPossibleCombinations(Map<Integer, Player> players) {
 		List<Player> sortedPlayers = new ArrayList<Player>();
 		for (Player player : players.values()) {
@@ -428,7 +430,13 @@ public class PlayerUtils {
 		return players;
 	}
 	
-
+	public static List<Player> reversePlayerList(List<Player> players){
+		List<Player> playersReverse = new ArrayList<Player>();
+		for (Player player : players) {
+			playersReverse.add(0, player);
+		}
+		return playersReverse;
+	}
 
 
 

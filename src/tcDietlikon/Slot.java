@@ -75,9 +75,22 @@ public class Slot {
 //		return true;
 //	}
 	
+	public void addPlayer(int playerNr, Player player) {
+		for (int otherPlayerNr : this.players.keySet()) {
+			if (playerNr==otherPlayerNr) {
+				System.out.println("XXXXXXXXXXXXXXXXX CAUTION: A player already exists in this slot with same playerNr = "+otherPlayerNr);
+			}
+		}
+		this.players.put(playerNr, player);
+	}
+	
 	public Boolean acceptsPlayer(Player player, int strategy) {
 		// loop to ensure that a player is not assigned two slots on the same weekday if he wants to train more than once
 		// this is always a condition irrespective of the strategy
+		if (this.players.containsKey(player.playerNr)) {
+			System.out.println("--------------------------------- Yes, it tried it !!");
+			return false;
+		}
 		if (this.isFrozen) {
 			return false;
 		}
@@ -224,6 +237,11 @@ public class Slot {
 	public List<Player> pushPlayerAndKickOtherplayer(Player player) {
 		Map<Player,Double> kickoutCandidates = new HashMap<Player,Double>();
 		List<Player> kickoutCandidatesList = new ArrayList<Player>();
+		// return initialized, but empty list if the group already features this player
+		if (this.players.containsKey(player.playerNr)) {
+			System.out.println("--------------------------------- Yes, it tried it !!");
+			return kickoutCandidatesList;
+		}
 		// check that desired slot
 		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
 		// +1 because considering case where another player is to be added
@@ -297,6 +315,10 @@ public class Slot {
 	}
 
 	public boolean isCompatibleWithPlayer(Player player) {
+		if (this.players.containsKey(player.playerNr)) {
+			System.out.println("--------------------------------- Yes, it tried it !!");
+			return false;
+		}
 		for (Player otherPlayer : this.players.values()) {
 			int ageDiff = Math.abs(player.age - otherPlayer.age);
 			int classDiff = Math.abs(player.strength - otherPlayer.strength);
@@ -424,6 +446,11 @@ public class Slot {
 	public List<Player> feasibleKickoutPlayers(Player player) {
 		Map<Player,Double> kickoutCandidates = new HashMap<Player,Double>();
 		List<Player> kickoutCandidatesList = new ArrayList<Player>();
+		// return initialized, but empty list if the group already features this player
+		if (this.players.containsKey(player.playerNr)) {
+			System.out.println("--------------------------------- Yes, it tried it !!");
+			return kickoutCandidatesList;
+		}
 		// check that desired slot
 		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
 		// +1 because considering case where another player is to be added

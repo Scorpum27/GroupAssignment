@@ -139,6 +139,11 @@ public class Player {
 	}
 
 	public boolean isCompatibleWithOtherPlayer(Player otherPlayer) {
+		// make sure not same player is put in a group twice
+		if (this.playerNr == otherPlayer.playerNr) {
+			System.out.println("--------------------------------- Yes, it tried it !!");
+			return false;
+		}
 		int ageDiff = Math.abs(this.age - otherPlayer.age);
 		int classDiff = Math.abs(this.strength - otherPlayer.strength);
 		if (ageDiff > this.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff || 				// Default > 3.0
