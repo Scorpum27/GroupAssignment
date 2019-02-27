@@ -855,7 +855,6 @@ public class Schedule {
 			if (otherslot.players.size() < 4) {
 				if (otherslot.isCompatibleWithPlayer(player)) {
 					System.out.println("Receiver Slot Size ==> "+otherslot.players.size());
-					int nSelectedSlotsBefore = otherslot.players.size(); // YYY
 					player.removeSelectedSlot(slot);
 					player.addSelectedSlot(otherslot);
 					slot.players.remove(player.playerNr);
@@ -866,9 +865,7 @@ public class Schedule {
 					if (otherslot.category.equals("empty")) {
 						otherslot.category = player.category;
 					}
-					if (otherslot.players.size()!=nSelectedSlotsBefore+1) {
-						System.out.println("XXXXXXXXXXX CAUTION: slots after removal/adding not same as before (1)");
-					}
+
 					this.copyFromSchedule(workingSchedule);
 					return true;
 				}
@@ -885,15 +882,11 @@ public class Schedule {
 				if (playersToBeKickedOut.size() > 0) {
 					// attempting to push player in other slot
 					// see below: if no other player could be pushed out of otherslot successfully and a group of 5 would result, the initial push is reversed
-					int nSelectedSlotsBefore = otherslot.players.size(); // YYY
 					slot.players.remove(player.playerNr);
 					player.removeSelectedSlot(slot);
 					otherslot.addPlayer(player.playerNr,player);
 					if (otherslot.category.equals("empty")) {
 						otherslot.category = player.category;
-					}
-					if (otherslot.players.size()!=nSelectedSlotsBefore+1) {
-						System.out.println("XXXXXXXXXXX CAUTION: slots after removal/adding not same as before (2)");
 					}
 					player.addSelectedSlot(otherslot);
 					for (Player playerToBeKickedOut : playersToBeKickedOut) {
@@ -914,11 +907,7 @@ public class Schedule {
 					if (otherslot.players.size()==0) {
 						otherslot.category = "empty";
 					}
-					int nSelectedSlotsBefore2 = slot.players.size(); // YYY
 					slot.addPlayer(player.playerNr,player);
-					if (slot.players.size()!=nSelectedSlotsBefore2+1) {
-						System.out.println("XXXXXXXXXXX CAUTION: slots after removal/adding not same as before (3)");
-					}
 				}
 			}
 		}
@@ -1135,7 +1124,6 @@ public class Schedule {
 		// if no feasible receiver slot has been found for a shift, the procedure for a push is initiated below
 		if (optimalReceiverSlot!=null) {
 			System.out.println("Receiver Slot Size ==> "+optimalReceiverSlot.players.size());
-			int nSelectedSlotsBefore = optimalReceiverSlot.players.size(); // YYY
 			slot.players.remove(player.playerNr);			
 			optimalReceiverSlot.addPlayer(player.playerNr,player);
 			player.removeSelectedSlot(slot);
@@ -1145,9 +1133,6 @@ public class Schedule {
 			}
 			if (slot.players.size()==0) {
 				slot.category = "empty";
-			}
-			if (optimalReceiverSlot.players.size()!=nSelectedSlotsBefore+1) {
-				System.out.println("XXXXXXXXXXX CAUTION: slots after removal/adding not same as before (4)");
 			}
 			this.copyFromSchedule(workingSchedule);
 			return true;
@@ -1195,16 +1180,12 @@ public class Schedule {
 				if (playersToBeKickedOut.size() > 0) {
 					// attempting to push player in other slot
 					// see below: if no other player could be pushed out of otherslot successfully and a group of 5 would result, the initial push is reversed
-					int nSelectedSlotsBefore = otherslot.players.size(); // YYY
 					slot.players.remove(player.playerNr);
 					player.removeSelectedSlot(slot);
 					otherslot.addPlayer(player.playerNr,player);
 					player.addSelectedSlot(otherslot);
 					if (otherslot.category.equals("empty")) {
 						otherslot.category = player.category;
-					}
-					if (otherslot.players.size()!=nSelectedSlotsBefore+1) {
-						System.out.println("XXXXXXXXXXX CAUTION: slots after removal/adding not same as before (5)");
 					}
 					for (Player playerToBeKickedOut : playersToBeKickedOut) {
 						boolean pushSuccessful = false;
@@ -1236,16 +1217,12 @@ public class Schedule {
 						}
 					}
 					// if code has arrived here: reverse the initial push bc no other player could be pushed out from the now group of 5!
-					int nSelectedSlotsBefore2 = slot.players.size(); // YYY
 					player.removeSelectedSlot(otherslot);
 					player.addSelectedSlot(slot);
 					otherslot.players.remove(player.playerNr);
 					slot.addPlayer(player.playerNr,player);
 					if (otherslot.players.size()==0) {
 						otherslot.category = "empty";
-					}
-					if (slot.players.size()!=nSelectedSlotsBefore2+1) {
-						System.out.println("XXXXXXXXXXX CAUTION: slots after removal/adding not same as before (6)");
 					}
 				}
 			}
@@ -1524,10 +1501,10 @@ public class Schedule {
 		for (int i=0; i<=7; i++) {
 			playerEfficiencyBins.put(i, 0);
 		}
-		Map<Integer,Integer> groupEfficiencyBins = new HashMap<Integer,Integer>(8);
-		for (int i=0; i<=7; i++) {
-			groupEfficiencyBins.put(i, 0);
-		}
+//		Map<Integer,Integer> groupEfficiencyBins = new HashMap<Integer,Integer>(8);
+//		for (int i=0; i<=7; i++) {
+//			groupEfficiencyBins.put(i, 0);
+//		}
 		for (Slot slot : this.slots.values()) {
 			int slotSize = slot.players.size();
 			int limitingMaxGroupSize = 8;
@@ -1539,13 +1516,12 @@ public class Schedule {
 					limitingMaxGroupSize=maxGroupSizeOfPlayer;
 				}
 			}
-			if (slotSize>0) {
-				int remainingSpaceInGroup = limitingMaxGroupSize-slotSize;				
-				groupEfficiencyBins.put(remainingSpaceInGroup,playerEfficiencyBins.get(remainingSpaceInGroup)+1);
-			}
+//			if (slotSize>0) {
+//				int remainingSpaceInGroup = limitingMaxGroupSize-slotSize;				
+//				groupEfficiencyBins.put(remainingSpaceInGroup,playerEfficiencyBins.get(remainingSpaceInGroup)+1);
+//			}
 		}
-//		System.out.println("Final group filledness:   "+efficiencyBins.toString());
-		System.out.println("Unused player tolerance:  "+groupEfficiencyBins.toString());
+//		System.out.println("Unused player tolerance:  "+groupEfficiencyBins.toString());
 		System.out.println("Spaces remaining free:    "+playerEfficiencyBins.toString());
 
 	}

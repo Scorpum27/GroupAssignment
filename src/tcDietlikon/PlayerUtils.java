@@ -83,21 +83,21 @@ public class PlayerUtils {
 			if (rS<0.40) {
 				player.category="default";
 			}
-			else if(rS<0.60) {
+			else if(rS<0.52) {
 				player.category = "TC";
 				player.strength = 20;
 				player.maxAgeDiff = 100;
 				player.maxClassDiff = 0;
 				player.maxGroupSize = 8;
 			}
-			else if(rS<0.73) {
+			else if(rS<0.68) {
 				player.category = "G";
 				player.strength = 21;
 				player.maxAgeDiff = 100;
 				player.maxClassDiff = 0;
 				player.maxGroupSize = 4;
 			}
-			else if(rS<0.86) {
+			else if(rS<0.84) {
 				player.category = "O";
 				player.strength = 22;
 				player.maxAgeDiff = 100;

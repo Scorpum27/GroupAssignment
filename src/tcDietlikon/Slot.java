@@ -88,7 +88,6 @@ public class Slot {
 		// loop to ensure that a player is not assigned two slots on the same weekday if he wants to train more than once
 		// this is always a condition irrespective of the strategy
 		if (this.players.containsKey(player.playerNr)) {
-			System.out.println("--------------------------------- Yes, it tried it !!");
 			return false;
 		}
 		if (this.isFrozen) {
@@ -239,7 +238,6 @@ public class Slot {
 		List<Player> kickoutCandidatesList = new ArrayList<Player>();
 		// return initialized, but empty list if the group already features this player
 		if (this.players.containsKey(player.playerNr)) {
-			System.out.println("--------------------------------- Yes, it tried it !!");
 			return kickoutCandidatesList;
 		}
 		// check that desired slot
@@ -316,7 +314,6 @@ public class Slot {
 
 	public boolean isCompatibleWithPlayer(Player player) {
 		if (this.players.containsKey(player.playerNr)) {
-			System.out.println("--------------------------------- Yes, it tried it !!");
 			return false;
 		}
 		for (Player otherPlayer : this.players.values()) {
@@ -448,7 +445,6 @@ public class Slot {
 		List<Player> kickoutCandidatesList = new ArrayList<Player>();
 		// return initialized, but empty list if the group already features this player
 		if (this.players.containsKey(player.playerNr)) {
-			System.out.println("--------------------------------- Yes, it tried it !!");
 			return kickoutCandidatesList;
 		}
 		// check that desired slot
