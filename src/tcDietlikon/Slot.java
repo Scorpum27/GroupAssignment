@@ -55,25 +55,34 @@ public class Slot {
 		return copy;
 	}
 	
-//	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
-//		if (! player.isADesiredSlot(this)) {
-//			return false;
-//		}
-//		for (Slot slot : player.selectedSlots) {
-//			if (this.weekdayNr == slot.weekdayNr) {
-//				return false;
-//			}
-//		}
-//		for (Player otherPlayer : this.players.values()) {
-//			int ageDiff = Math.abs(player.age-otherPlayer.age);
-//			int classDiff = Math.abs(player.strength-otherPlayer.strength);
-//			if (ageDiff > player.maxAgeDiff  ||  ageDiff > otherPlayer.maxAgeDiff	||				// Default > 3.0
-//				classDiff > player.maxClassDiff  ||  classDiff > otherPlayer.maxClassDiff) {		// Default > 2.0
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
+	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
+		if (this.isFrozen) {
+			return false;
+		}
+		if (this.players.containsKey(player.playerNr)) {
+			return false;
+		}
+		if (! player.isADesiredSlot(this)) {
+			return false;
+		}
+		if (!this.category.equals("empty") && !player.category.equals(this.category)) {
+			return false;
+		}
+		for (Slot slot : player.selectedSlots) {
+			if (this.weekdayNr == slot.weekdayNr) {
+				return false;
+			}
+		}
+		for (Player otherPlayer : this.players.values()) {
+			int ageDiff = Math.abs(player.age-otherPlayer.age);
+			int classDiff = Math.abs(player.strength-otherPlayer.strength);
+			if (ageDiff > player.maxAgeDiff  ||  ageDiff > otherPlayer.maxAgeDiff	||				// Default > 3.0
+				classDiff > player.maxClassDiff  ||  classDiff > otherPlayer.maxClassDiff) {		// Default > 2.0
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	public void addPlayer(int playerNr, Player player) {
 		for (int otherPlayerNr : this.players.keySet()) {
@@ -112,7 +121,30 @@ public class Slot {
 		if (!this.category.equals("empty") && !player.category.equals(this.category)) {
 			return false;
 		}
-
+		// a Saturday slot can only be assigned if the player has a desired slot on Saturdays ("...at least as close as two hours to this slot." could be implemented)
+		if (this.weekdayNr==6) {
+			// standard version
+			if (! player.isADesiredSlot(this)) {
+				return false;
+			}
+			// close desired slots version
+//			boolean saturdayPermitted = false;
+//			for (Slot slot : player.desiredSlots) {
+//				if (slot.weekdayNr==6 && Math.abs(slot.time-this.time)<=2) {
+//					return true;
+//				}
+//				else {
+//					continue;
+//				}
+//			}
+//			
+//			if (saturdayPermitted) {
+//				return true;
+//			}
+//			else {
+//				return false;
+//			}
+		}
 		// STRATEGY 0: add player only in an already activated slot (i.e. that has already been added a player)
 		// max 4 players/group; class/age constraints; only desired slots;
 		if (strategy == 0) {
@@ -228,7 +260,10 @@ public class Slot {
 			return "Do";
 		} else if (dayNr == 5) {
 			return "Fr";
-		} else {
+		} else if (dayNr == 6) {
+			return "Sa";
+		}
+		else {
 			return "Unkwn";
 		}
 	}
@@ -242,7 +277,6 @@ public class Slot {
 		}
 		// check that desired slot
 		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
-		// +1 because considering case where another player is to be added
 		if (! player.isADesiredSlot(this) || player.maxGroupSize < this.players.size()) {
 			// returns empty list indicating that no possibility of a push and kick
 			return kickoutCandidatesList;
@@ -387,7 +421,7 @@ public class Slot {
 			return 3; // Monday, Tuesday, Thursday 
 		}
 		else {
-			return 1000;			
+			return 1000; // Saturday or unknown		
 		}
 	}
 

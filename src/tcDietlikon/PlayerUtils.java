@@ -312,6 +312,7 @@ public class PlayerUtils {
         		playerCounter++;
         		Integer playerNr = playerCounter;
         		String name = dataFormatter.formatCellValue(row.getCell(0));
+        		String playerNotes = dataFormatter.formatCellValue(row.getCell(0));
         		// players have different categories
         		// if normal junior category: have to parse player strength as it is given with prefix "R" or "N"
         		// for slot categories instead of solely using player strength may change the following:
@@ -386,6 +387,7 @@ public class PlayerUtils {
         			maxGroupSize = 8;
         		}
         		else {
+        			System.out.println(r);
         			maxGroupSize = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(4)));        			
         		}
 
@@ -395,6 +397,9 @@ public class PlayerUtils {
         		players.put(playerCounter, newPlayer);
         		
         		for (int slotRowNr=r+1; slotRowNr<= r+6; slotRowNr++) {
+        			if (slotRowNr>playerSheet.getLastRowNum()) {
+        				break;
+        			}
         			Row slotRow = playerSheet.getRow(slotRowNr);
         			if (dataFormatter.formatCellValue(slotRow.getCell(0)).equals("") && !dataFormatter.formatCellValue(slotRow.getCell(1)).equals("")) {
         				int slotDayNr = Integer.parseInt(dataFormatter.formatCellValue(slotRow.getCell(1)));

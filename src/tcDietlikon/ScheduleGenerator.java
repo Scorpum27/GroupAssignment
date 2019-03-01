@@ -22,19 +22,28 @@
 //		--> in currentlyOptimalReceiverSlot
 //		--> or completely random?
 // XXX Try to explicitly push players with undesired slots! --> may just change their current undesired slot to another slot and then be combinable!!
+// IF player cannot be placed
+// 1. try to make an initial push/pull (can also push a player to a smaller or yet empty slot)
+//		--> see if this strategy is good or rather do not use point 1 -> tend to push highly linkable ones first
+//		--> could also wait until all players are placed and then take out of basket and try to assign by pushing!
+// 2. If fails, do not place at beginning (keep in basket)
+// 3. At the end, place undesired players again with smaller groups, groups of 5, and completely empty slots!
+// 4. also try to put single (or double!) players into already full groups at the very end to get groups of 5 if need be
+
 //	 --> source of problem may be: undesired placement takes place into a G4, then it can only be shifted if it comes out of G4, which is only possible into G3/G4
 //	 --> may loosen placement rules at the end or not put in undesiredSlot at the start
 //	 --> or at the start make an immediate push with another player --> and push those players who have highest linkability first!
-// XXX Where do the differences between actual total and desired total come from?
-//   --> check from cumulative slot size if not all desired nSlots are covered
-//   --> do the same thing for the players!
-//	 --> do both the above in compliance --> check before, intermediate, final!
-//   --> possibly a player is put in a slot where it already is!! -> check compliance after initialPlacement: if it has two slots on same day, can lead to failure
+//   --> (1) Can also push another player to a yet empty slot or just a less filled slot!!!
+//      (2) make pull procedures - maybe more efficient!!
+//	 --> make pull and push at the same time --> make potential push candidates lists (kickout tree with branches memory) and the pulls at the same time
+//			--> if any of the branches for push and pull meet, we can connect the two!
+//	 --> at the end: can push unsuccessulPlacements also to groups of 5 or push unsuccessful players to group of 4 and then kickout to group of five!
 // XXX Dijkstra strategies!!
 // - strategies to shuffle players into unused slots to open them up! (maybe whole groups?)
 // - stagnation: reshuffle groups by shifting players from one to another improving their overall linkability or age/class differences --> then refine() again?
 // - pull procedures
 // - manual inputs for very strong players
+// - Problem: slots change with every push -> do not know if path actually exists
 
 // TUNING
 // - pushLevel --> make list of most wanted slots and fill in accordingly maybe rather place players first in desirable slots!!! 
@@ -56,28 +65,33 @@ public class ScheduleGenerator {
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException, EncryptedDocumentException, InvalidFormatException {
 	
-		int pushLevel = 4;
+		int pushLevel = 3;
 		boolean createNewPlayerSet = true;
 		boolean useFixedSlotFile = false;
 		int initialPlacementStrategy = 2;
 		boolean doNotLoadSelectedSlots = true;
+		boolean loadPlayers = true;
 
 	// create or load players
 		Map<Integer,Player> players = new HashMap<Integer,Player>();
 		// create random players with a reasonable distribution
-		if (createNewPlayerSet) {
-			int nPlayers = 200;
-			players = PlayerUtils.createPlayers(nPlayers);
-			XMLOps.writeToFile(players, "samplePlayers.xml");
+		if (!loadPlayers) {
+			if (createNewPlayerSet) {
+				int nPlayers = 200;
+				players = PlayerUtils.createPlayers(nPlayers);
+				XMLOps.writeToFile(players, "samplePlayers.xml");
+			}
+			else {
+				// load sample players from file			
+				players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers_BENCHMARK.xml")); // samplePlayers_BENCHMARK
+				if (doNotLoadSelectedSlots) { for (Player player : players.values()) {player.selectedSlots.clear();} }
+			}
 		}
 		else {
-			players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers_BENCHMARK.xml"));
-			if (doNotLoadSelectedSlots) { for (Player player : players.values()) {player.selectedSlots.clear();} }
+			// load players from actual TCD registration form
+			String playerRegistrationFile = "PlayersTCDietlikonWinter2018.xlsx";
+			players = PlayerUtils.loadPlayers(playerRegistrationFile);
 		}
-	// load players from actual TCD registration form
-		// String playerRegistrationFile = "Template_Tennischule_Einteilung.xlsx";
-		// Map<Integer,Player> players = PlayerUtils.loadPlayers(playerRegistrationFile);
-	// load sample players from file
 
 	// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);

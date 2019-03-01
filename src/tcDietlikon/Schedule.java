@@ -1,5 +1,6 @@
 package tcDietlikon;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,12 +19,16 @@ import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class Schedule {
@@ -149,20 +155,30 @@ public class Schedule {
 		if (useFixedSlotFile) {
 			schedule.setFixedSlotsAndPlayers(players,fixedGroupsFile);
 		}
-
 		
 		int unsuccessfulPlacements = 0;
 		// Fill in players with max group size 4 before more limited group sizes: G4 before G3 before G2 before G1 (players with maxGroupSize G"X")
 		for (int maxGroupSizePlacementRound : Arrays.asList(8,7,6,5,4,3,2,1)) {
-			for (Player player : playersSortedByPossibleCombinations) {
-//			for (Player player : PlayerUtils.reversePlayerList(playersSortedByPossibleCombinations)) { XXX
+			for (Player player : playersSortedByPossibleCombinations) { // for (Player player : PlayerUtils.reversePlayerList(playersSortedByPossibleCombinations)) {
 				// place player in this round only if it has the corresponding maxGroupSize. Else, wait until it hits correct groupSizeCategory
 				if (player.maxGroupSize!=maxGroupSizePlacementRound) {
 					continue;
 				}
 				// use strategy 2 or lower to consider only desired slots and all other constraints
-				Integer unsuccessfulPlacementsThisPlayer = schedule.placePlayer(player, 3, initialPlacementStrategy);
+				Integer unsuccessfulPlacementsThisPlayer = schedule.placePlayer(player, 2, initialPlacementStrategy);	// XXX 2 instead of 3
 				// if player could not be assigned to enough slots with placement strategies, this is a problem
+				// --> try to make a push and reassign another player in order to fit them both
+				// --> make sure an undesirable placement (in schedule.placePlayer) is always marked within the player
+				for (Slot undesirableSlot : player.undesirablePlacements) {
+					System.out.println("Trying");
+					Schedule tempSchedule = schedule.clone();
+					boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+							player.playerNr, undesirableSlot.slotId, undesirableSlot.clone(), 5, false, 0);
+					if (pushSuccessful) {
+						System.out.println("Managed to push player from undesirable slot into desirable one");
+						schedule.copyFromSchedule(tempSchedule);
+					}					
+				}
 				// --> either loosen placement strategy and try again or assign manually at the end
 				// in any case, the player is marked so that the unsatisfied players can be tracked!
 				if (unsuccessfulPlacements > 0) {
@@ -423,6 +439,20 @@ public class Schedule {
 				unsuccessfulPlacementsThisPlayerAndRound++;
 				// No need to place player in undesirable slot here, bc a higher number strategy will allow to do so when the loop moves one strategy higher
 				// it will inherently move one number higher bc the output of this method is higher than 0 indicating that not all desired nSlots could be assigned
+				
+				// XXX may delete this entire thing
+				// place the unsuccessful player in an early monday slot on a not active court for reassignement
+//				for (int day=0; day<=4; day++) {
+//					Slot slot = this.slots.get(1+day*3);
+//					if (slot.players.size()>=8) {
+//						continue;
+//					}
+//					else {
+//						slot.addPlayer(player.playerNr, player);
+//						player.addSelectedSlot(slot);
+//						player.undesirablePlacements.add(slot);
+//					}
+//				}
 			}
 		}
 		return unsuccessfulPlacementsThisPlayerAndRound;
@@ -431,7 +461,7 @@ public class Schedule {
 	
 
 	public int slot2row(int time) {
-		return 2+(time-this.firstHour)*10;
+		return 2+(time-this.firstHour)*9;
 	}
 
 	public int slot2col(int day, int court) {
@@ -448,14 +478,14 @@ public class Schedule {
 	
 	public void write(String fileName) throws IOException {
 		
-		XMLOps.writeToFile(this, "FinalSchedule.xlsx");
+		XMLOps.writeToFile(this, "FinalSchedule.xml");
 		XMLOps.writeToFile(this.players, "FinalSchedulePlayers.xml");
 		
-		Workbook workbook = new XSSFWorkbook(); // new HSSFWorkbook() for generating `.xls` file
-		Sheet sheet = workbook.createSheet("Junioren Sommertraining");
+		XSSFWorkbook workbook = new XSSFWorkbook(); // new HSSFWorkbook() for generating `.xls` file
+		XSSFSheet sheet = workbook.createSheet("Junioren Sommertraining");
 
 		List<Row> rows = new ArrayList<Row>();
-		for (int r=0; r<=10+10*(this.lastHour-this.firstHour+1); r++) {
+		for (int r=0; r<=10+9*(this.lastHour-this.firstHour+1); r++) {
 			rows.add(sheet.createRow(r));
 		}
 		
@@ -464,13 +494,19 @@ public class Schedule {
 		
 		Font slotTitleFont = workbook.createFont();
 		slotTitleFont.setBold(true);
-		CellStyle slotTitleCellStyle = workbook.createCellStyle();
+		XSSFCellStyle slotTitleCellStyle = workbook.createCellStyle();
+		slotTitleCellStyle.setBorderTop(BorderStyle.THIN);
 		slotTitleCellStyle.setFont(slotTitleFont);
+		slotTitleCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor slotTitleCellColor = new XSSFColor(new Color(220,220,220));
+		slotTitleCellStyle.setFillBackgroundColor(slotTitleCellColor);
+		slotTitleCellStyle.setFillForegroundColor(slotTitleCellColor);
 		
+
 		for (int time=this.firstHour; time<=this.lastHour; time++) {
 			refRowNr = this.slot2row(time);
 			Row row = rows.get(refRowNr);
-//			row.setRowStyle(slotTitleCellStyle);
+			row.setRowStyle(slotTitleCellStyle);
 			for (int day=1; day<=this.nDays; day++) {
 				for (int court=1; court<=this.nCourts; court++) {
 					refColNr = this.slot2col(day, court);
@@ -482,9 +518,26 @@ public class Schedule {
 				}
 			}
 		}
+
+		XSSFCellStyle whiteCellStyle = workbook.createCellStyle();
+		whiteCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor whiteCellColor = new XSSFColor(new Color(255,255,255));
+		whiteCellStyle.setFillBackgroundColor(whiteCellColor);
+		whiteCellStyle.setFillForegroundColor(whiteCellColor);
+		
+		XSSFCellStyle undesiredSlotStyle = workbook.createCellStyle();
+		undesiredSlotStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor undesiredCellColor = new XSSFColor(new Color(255,99,71));
+		undesiredSlotStyle.setFillBackgroundColor(undesiredCellColor);
+		undesiredSlotStyle.setFillForegroundColor(undesiredCellColor);
 		
 		CellStyle rightBorderCellStyle = workbook.createCellStyle();
-		rightBorderCellStyle.setBorderRight(BorderStyle.MEDIUM);
+		rightBorderCellStyle.setBorderRight(BorderStyle.THICK);
+		CellStyle rightBorderCellStyleLight = workbook.createCellStyle();
+		rightBorderCellStyleLight.setBorderRight(BorderStyle.THIN);
+		
+		CellStyle leftBorderCellStyle = workbook.createCellStyle();
+		leftBorderCellStyle.setBorderLeft(BorderStyle.THICK);
 		
 		for (Slot slot : this.slots.values()) {
 			refColNr = this.slot2col(slot.weekdayNr, slot.courtNr);
@@ -498,11 +551,32 @@ public class Schedule {
 					nameCell.setCellValue("(**) "+player.name + " (" + player.linkablePlayers.size() + ")");
 				}				
 				else if (!player.isADesiredSlot(slot)) {
+					nameCell.setCellStyle(undesiredSlotStyle);
 					nameCell.setCellValue("(*) "+player.name + " (" + player.linkablePlayers.size() + ")");
 				}
 				// make sure to mark undesirable slots!
 				else {
 					nameCell.setCellValue(player.name + " (" + player.linkablePlayers.size() + ")");
+					XSSFCellStyle newColorCellStyle = workbook.createCellStyle();
+					newColorCellStyle.cloneStyleFrom(nameCell.getCellStyle());
+//					XSSFColor efficiencyColor = new XSSFColor(new Color(255,255,255));
+					Color efficiencyColor = new Color(255,255,0);
+					if (slot.players.size()==player.maxGroupSize) {
+						efficiencyColor = new Color(0,128,0);
+					}
+					else if (slot.players.size()==player.maxGroupSize-1){
+						efficiencyColor = new Color(154,205,50);	// light green for good usage of player tolerance
+					}
+					else if (slot.players.size()==player.maxGroupSize-2){
+						efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
+					}
+					else if (slot.players.size()<=player.maxGroupSize-3){
+						efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
+					}
+					newColorCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+					newColorCellStyle.setFillForegroundColor(new XSSFColor(efficiencyColor));
+					newColorCellStyle.setFillBackgroundColor(new XSSFColor(efficiencyColor));
+					nameCell.setCellStyle(newColorCellStyle);
 				}
 				Cell maxGroupSizeCell = playerRow.createCell(refColNr + 1);
 				maxGroupSizeCell.setCellValue(player.maxGroupSize);
@@ -513,14 +587,143 @@ public class Schedule {
 				else 																					{ classCell.setCellValue("?default?"); }
 				Cell ageCell = playerRow.createCell(refColNr + 3);
 				ageCell.setCellValue(player.age);
-				ageCell.setCellStyle(rightBorderCellStyle);
+				ageCell.setCellStyle(rightBorderCellStyleLight);
 				playerNr++;
 			}
 		}
 	  
+		// make list of players with nSlots not satisfied
+		int col = 72;	// make a colum with unsatisfied players after 6 days (3 courts w/ 4 columns) at 12 columns each
+		int rr = 2;	// start at third row for list of unsatisfied players
+		Row rrow;
+		Cell nameCell;
+		Cell classCell;
+		Cell ageCell;
+		Cell maxGroupSizeCell;
+		for (Player player : this.players.values()) {
+			int nUnsatisfiedSlots = player.nSlots-player.selectedSlots.size();
+			if (nUnsatisfiedSlots>0) {
+				rrow = sheet.getRow(rr);
+				nameCell = rrow.createCell(col+2);
+				nameCell.setCellValue(player.age + " - " + player.name);
+				nameCell.setCellStyle(undesiredSlotStyle);
+				Cell borderCell = rrow.createCell(col+3);
+				borderCell.setCellStyle(leftBorderCellStyle);
+				classCell = rrow.createCell(col);
+				if (player.strength==20) {
+					classCell.setCellValue("TC");					
+				}
+				else if (player.strength==21) {
+					classCell.setCellValue("G");					
+				}
+				else if (player.strength==22) {
+					classCell.setCellValue("O");					
+				}
+				else if (player.strength==23) {
+					classCell.setCellValue("R");					
+				}
+				else if (1 <= player.strength && player.strength <= 9){
+					classCell.setCellValue("R"+player.strength);
+				}
+				else if (-3 <= player.strength && player.strength <= 0) {
+					classCell.setCellValue("N"+(4+player.strength));
+				}
+				else {
+					classCell.setCellValue("??");
+				}
+				classCell.setCellStyle(slotTitleCellStyle);
+//				ageCell = rrow.createCell(col+1);
+//				ageCell.setCellValue(player.age);
+				maxGroupSizeCell = rrow.createCell(col+1);
+				maxGroupSizeCell.setCellValue(player.maxGroupSize+"er");
+				maxGroupSizeCell.setCellStyle(slotTitleCellStyle);
+				rr++;
+				for (int n=1; n<=nUnsatisfiedSlots; n++) {
+					for (Slot slot : player.desiredSlots) {
+						Row slotRow = sheet.getRow(rr);
+						Cell dayCell = slotRow.createCell(col);
+						dayCell.setCellValue(Slot.dayNr2Name(slot.weekdayNr));
+						Cell timeCell = slotRow.createCell(col+1);
+						timeCell.setCellValue(slot.time);
+						Cell whiteCell = slotRow.createCell(col+2);
+						whiteCell.setCellValue("");
+						whiteCell.setCellStyle(timeCell.getCellStyle());
+						borderCell = slotRow.createCell(col+3);
+						borderCell.setCellStyle(leftBorderCellStyle);
+						rr++;
+					}
+				}
+				
+			}
+		}
+		
+		
+		// for every player (maybe multiple times) make an entry with its name, groupsize strength and slots etc after saturday!
+		
 		// Resize all columns to fit the content size
-		for (int i = 0; i <= 200; i++) {
+		for (int i = 0; i <= 250; i++) {
 			sheet.autoSizeColumn(i);
+		}
+		
+		// make lines to separate days (thick) and courts (thin)
+		// figure out till where the lines should be drawn
+		int maxRowCellNr = 0;
+		for (int r=2; r<62; r++) {
+			Row row = sheet.getRow(r);
+			if (row.getLastCellNum()>maxRowCellNr) {
+				maxRowCellNr = row.getLastCellNum();
+			}
+		}
+		for (int r=2; r<=sheet.getLastRowNum(); r++) {
+			Row row = sheet.getRow(r);
+			for (int c=0; c<=maxRowCellNr; c++) {
+				Cell cell;
+				if (row.getCell(c)==null) {
+					cell = row.createCell(c);
+					if ((r-2)%9==0) {
+						cell.setCellStyle(slotTitleCellStyle);
+					}
+				}
+				else {
+					cell = row.getCell(c);					
+				}
+				if ((c+1)%12==0) {
+					CellStyle newCellStyle = workbook.createCellStyle();
+					newCellStyle.cloneStyleFrom(cell.getCellStyle());
+					newCellStyle.setBorderRight(BorderStyle.THICK);
+					cell.setCellStyle(newCellStyle);
+				}
+				else if ((c+1-4)%12==0) {
+					CellStyle newCellStyle = workbook.createCellStyle();
+					newCellStyle.cloneStyleFrom(cell.getCellStyle());
+					newCellStyle.setBorderRight(BorderStyle.THIN);
+					cell.setCellStyle(newCellStyle);
+				}
+				else if ((c+1-8)%12==0) {
+					CellStyle newCellStyle = workbook.createCellStyle();
+					newCellStyle.cloneStyleFrom(cell.getCellStyle());
+					newCellStyle.setBorderRight(BorderStyle.THIN);
+					cell.setCellStyle(newCellStyle);
+				}
+			}
+//			Iterator<Cell> cellIter = row.cellIterator();
+//			int cellNr = 0;
+//			while (cellIter.hasNext()) {
+//				Cell cell = cellIter.next();
+//				if ((cellNr+1)%12==0) {
+//					CellStyle currentCellStyle = cell.getCellStyle();
+//					currentCellStyle.setBorderRight(BorderStyle.THICK);
+//				}
+//				else if ((cellNr+1-4)%12==0) {
+//					CellStyle currentCellStyle = cell.getCellStyle();
+//					currentCellStyle.setBorderRight(BorderStyle.THIN);
+//				}
+//				else if ((cellNr+1-8)%12==0) {
+//					CellStyle currentCellStyle = cell.getCellStyle();
+//					currentCellStyle.setBorderRight(BorderStyle.THIN);
+//				}
+//				cellNr++;
+//			}
 		}
 
 		// Make header after resizing so that first column is not super wide due to long title of first headerCell
@@ -709,7 +912,7 @@ public class Schedule {
 		if (minimumOneSuccessfulPush) {
 			this.copyFromSchedule(pushedSchedule);			
 		}
-		// TODO may update players with selected slots here
+		// may update players with selected slots here if problems arise
 		return minimumOneSuccessfulPush;
 	}
 
@@ -773,7 +976,7 @@ public class Schedule {
 				pushGroupSizeList = Arrays.asList(7,8,6,5,4,3);
 			}
 			else {
-				pushGroupSizeList = Arrays.asList(3);	// old version is worse: Arrays.asList(3,4)
+				return false; // pushGroupSizeList = Arrays.asList(3);	// old version is worse: Arrays.asList(3,4)
 			}
 			for (int pushGroupSize : pushGroupSizeList) { // 
 				pushSuccessful = tempSchedule.pushSinglePlayerToGroupWithSizeX(slotId, playerNr, pushGroupSize, pushLevel);				
@@ -982,7 +1185,7 @@ public class Schedule {
 		if (minimumOneSuccessfulPush) {
 			this.copyFromSchedule(pushedSchedule);			
 		}
-		// TODO may update players with selected slots here
+		// may update players with selected slots here if problems arise
 		return minimumOneSuccessfulPush;
 	}
 	
@@ -1030,7 +1233,7 @@ public class Schedule {
 				if (pushGroupSize < finalShiftGroupSizeMinimum) {
 					break;
 				}
-				if (pushGroupSize<thisSlotSizeBeforePush) {	// XXX alternative: (pushGroupSize<thisSlotSizeBeforePush-1)
+				if (pushGroupSize<thisSlotSizeBeforePush) {	// alternative: (pushGroupSize<thisSlotSizeBeforePush-1)
 					continue;
 				}
 				pushSuccessful = tempSchedule.shiftAndPushSinglePlayerToGroupWithSizeX(slotId, initialPusherSlotCopy, playerNr,
@@ -1498,7 +1701,7 @@ public class Schedule {
 		
 		// check how many players are in a group below their max group size
 		Map<Integer,Integer> playerEfficiencyBins = new HashMap<Integer,Integer>(8);
-		for (int i=0; i<=7; i++) {
+		for (int i=0; i<=8; i++) {
 			playerEfficiencyBins.put(i, 0);
 		}
 //		Map<Integer,Integer> groupEfficiencyBins = new HashMap<Integer,Integer>(8);
@@ -1511,6 +1714,9 @@ public class Schedule {
 			for (Player player : slot.players.values()) {
 				int maxGroupSizeOfPlayer = player.maxGroupSize;
 				int diff = maxGroupSizeOfPlayer-slotSize;
+				if (diff<0) {
+					continue;
+				}
 				playerEfficiencyBins.put(diff,playerEfficiencyBins.get(diff)+1);
 				if (maxGroupSizeOfPlayer<limitingMaxGroupSize) {
 					limitingMaxGroupSize=maxGroupSizeOfPlayer;
