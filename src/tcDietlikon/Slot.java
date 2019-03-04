@@ -15,25 +15,23 @@ public class Slot {
 		// 8 = 0800-0900; 16 = 1600-1700; etc.
 	int courtNr;
 	int slotId;
-	Map<Integer,Player> players;
+	Map<Integer,Player> players = new HashMap<Integer,Player>();
+	List<Player> desirablePlayers = new ArrayList<Player>();
 	Boolean isFrozen = false;
 	String category = "empty";
 	
 	Slot(){	
-		this.players = new HashMap<Integer,Player>();
 	}
 	
 	Slot(Integer weekday, Integer time){	
 		this.weekdayNr = weekday;
 		this.time = time;
-		this.players = new HashMap<Integer,Player>();
 	}
 
 	Slot(Integer weekday, Integer time, Integer courtNr){	
 		this.weekdayNr = weekday;
 		this.time = time;
 		this.courtNr = courtNr;
-		this.players = new HashMap<Integer,Player>();
 	}
 
 	Slot(Integer slotId, Integer weekday, Integer time, Integer courtNr){	
@@ -41,7 +39,6 @@ public class Slot {
 		this.weekdayNr = weekday;
 		this.time = time;
 		this.courtNr = courtNr;
-		this.players = new HashMap<Integer,Player>();
 	}
 	
 	public Slot clone() {
@@ -52,9 +49,13 @@ public class Slot {
 		for (Player player : this.players.values()) {
 			copy.players.put(player.playerNr,player.clone());
 		}
+		for (Player player : this.desirablePlayers) {
+			copy.desirablePlayers.add(player);
+		}
 		return copy;
 	}
 	
+	// usually to check if player could be added to a group if it were pushed there (no size constraint bc during push procedure another palyer would be kicked out)
 	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
 		if (this.isFrozen) {
 			return false;
@@ -93,7 +94,7 @@ public class Slot {
 		this.players.put(playerNr, player);
 	}
 	
-	public Boolean acceptsPlayer(Player player, int strategy) {
+	public Boolean acceptsPlayer(Player player, int strategy, boolean allowOverfullGroups) {
 		// loop to ensure that a player is not assigned two slots on the same weekday if he wants to train more than once
 		// this is always a condition irrespective of the strategy
 		if (this.players.containsKey(player.playerNr)) {
@@ -109,13 +110,15 @@ public class Slot {
 		}
 		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
 		// +1 because considering case where another player is to be added
-		if (player.maxGroupSize < this.players.size()+1) {
-			return false;
-		}
-		for (Player otherPlayer : this.players.values()) {
-			if (otherPlayer.maxGroupSize < this.players.size()+1) {
+		if (!allowOverfullGroups) {
+			if (player.maxGroupSize < this.players.size()+1) {
 				return false;
 			}
+			for (Player otherPlayer : this.players.values()) {
+				if (otherPlayer.maxGroupSize < this.players.size()+1) {
+					return false;
+				}
+			}		
 		}
 
 		if (!this.category.equals("empty") && !player.category.equals(this.category)) {
@@ -235,9 +238,27 @@ public class Slot {
 			}
 			return true;
 		}
+		// STRATEGY 11: for checking if a slot would accept player (during push procedures)
+		// -> note that the size constraint is not featured as we know that we will kick out another player after pushing this one -> size will not grow
+//		if (strategy == 11) {
+//			for (Player otherPlayer : this.players.values()) {
+//				int ageDiff = Math.abs(player.age-otherPlayer.age);
+//				int classDiff = Math.abs(player.strength-otherPlayer.strength);
+//				if (ageDiff > player.maxAgeDiff  ||  ageDiff > otherPlayer.maxAgeDiff	||				// Default > 3.0
+//					classDiff > player.maxClassDiff  ||  classDiff > otherPlayer.maxClassDiff) {		// Default > 2.0
+//					return false;
+//				}
+//			}
+//			if (! player.isADesiredSlot(this)) {
+//				return false;
+//			}
+//			
+//			return true;
+//		}
 		// if has managed to pass all tests up to here, return true (= "player can be accepted into the group of this slot")
 		return true;
 	}
+	
 	
 	public boolean isSameTimeAndDay(Slot slot) {
 		if (this.time == slot.time &&
@@ -346,7 +367,7 @@ public class Slot {
 		return kickoutCandidatesList;
 	}
 
-	public boolean isCompatibleWithPlayer(Player player) {
+	public boolean isCompatibleWithPlayer(Player player, boolean allowOverfullGroups) {
 		if (this.players.containsKey(player.playerNr)) {
 			return false;
 		}
@@ -360,13 +381,15 @@ public class Slot {
 		}
 		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
 		// +1 because considering case where another player is to be added
-		if (player.maxGroupSize < this.players.size()+1) {
-			return false;
-		}
-		for (Player otherPlayer : this.players.values()) {
-			if (otherPlayer.maxGroupSize < this.players.size()+1) {
+		if (!allowOverfullGroups) {
+			if (player.maxGroupSize < this.players.size()+1) {
 				return false;
 			}
+			for (Player otherPlayer : this.players.values()) {
+				if (otherPlayer.maxGroupSize < this.players.size()+1) {
+					return false;
+				}
+			}			
 		}
 		if (!player.isADesiredSlot(this)) {
 			return false;
@@ -575,6 +598,52 @@ public class Slot {
 			}
 		}
 		return average;
+	}
+
+	public boolean isFull() {
+		int slotSize = this.players.size();
+		for (Player player : this.players.values()) {
+			if (player.maxGroupSize>=slotSize) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean fillWithPlayers(int fullnessGoalPlacementRound, int maxGroupSizePlacementRound, Map<Integer, Player> players) {
+//		System.out.println("Trying to fill slot="+this.slotId);
+		
+		// find all players with the maxGroupSize as specified by loop in calling method (--> these may now be combined in filling in the slot)
+		List<Player> feasiblePlayers = new ArrayList<Player>();
+		for (Player player : this.desirablePlayers) {
+//			System.out.println("player.maxGroupSize = "+player.maxGroupSize);
+//			System.out.println("player.nSlots-player.selectedSlots.size() = "+(player.nSlots-player.selectedSlots.size()));
+			if (player.maxGroupSize==maxGroupSizePlacementRound && player.selectedSlots.size()<player.nSlots && !player.hasSlotOnSameDay(this)) {
+				feasiblePlayers.add(player);
+			}
+		}
+		// find the combination of feasible players that fulfills the fullnessGoal with the least overall player linkability
+		int sizeGoal = maxGroupSizePlacementRound-fullnessGoalPlacementRound;
+		if (feasiblePlayers.size()<sizeGoal) {
+			return false;
+		}
+		List<Player> finalGroup = new ArrayList<Player>();
+		finalGroup = PlayerUtils.findOptimalPlayerCombination(finalGroup, feasiblePlayers, sizeGoal, Double.MAX_VALUE);
+		if (finalGroup.size()>0) {
+			if (this.category.equals("empty")) {
+				this.category = finalGroup.get(0).category;	// category of first player
+			}
+			for (Player player : finalGroup) {
+				this.addPlayer(player.playerNr, player);
+				player.addSelectedSlot(this);
+				player.worstPlacementRound = 0;					
+			}
+			System.out.println("SUCCESS: GroupSize="+maxGroupSizePlacementRound+" / SpacesFree="+fullnessGoalPlacementRound);
+			return true;
+		}
+		else {
+			return false;			
+		}
 	}
 	
 

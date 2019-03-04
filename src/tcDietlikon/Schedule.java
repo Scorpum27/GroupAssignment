@@ -145,7 +145,8 @@ public class Schedule {
 	}
 	
 	
-	public static Schedule initializeSchedule(Map<Integer, Player> players, String courtScheduleFile, int initialPlacementStrategy, String fixedGroupsFile, boolean useFixedSlotFile)
+	public static Schedule initializeSchedule(Map<Integer, Player> players, String courtScheduleFile, int initialPlacementStrategy,
+			String fixedGroupsFile, boolean useFixedSlotFile, boolean useFullSlotFilling)
 			throws EncryptedDocumentException, InvalidFormatException, IOException {
 		
 		Schedule schedule = new Schedule(courtScheduleFile); 	// initializes schedule with slots when courts are free (see excel file)
@@ -153,7 +154,50 @@ public class Schedule {
 		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(schedule.players);
 		// load fixed groups and courts into a list of fixed slots
 		if (useFixedSlotFile) {
-			schedule.setFixedSlotsAndPlayers(players,fixedGroupsFile);
+			schedule.setFixedSlotsAndPlayers(players,fixedGroupsFile); 
+		}
+		
+		
+	// try initial placement of directly filling a min. number of players in the same slot (for a min. number always start filling least demanded slot)
+		if (useFullSlotFilling) {
+			List<Slot> slotsRankedByDemand = schedule.sortSlotsByPlayerDemand(players);	// lowest demand first (slots with same time/day come right after each other)
+			List<Slot> slotsRankedByDemandReverse = new ArrayList<Slot>();
+			for (Slot slot : slotsRankedByDemand) {
+				slotsRankedByDemandReverse.add(0, slot);
+			}
+			System.out.println("slotsRankedByDemand.size() = "+slotsRankedByDemand.size());
+			schedule.markSlotsWithDesirablePlayers(players);
+			int maxGroupSizeOverall = 8;
+			// take maxSize=8 players first and try to build full slots with 8 players
+			// --> then take maxSize=7 players and try to build full slots with those 7 players
+			// --> continue trying to fill entire slots at once down to single player slots (in every round start with the least demanded slot)
+			// after trying to fill slots entirely in one shot, loosen condition and allow one space to remain free
+			// after that, advance to two free spaces and so on
+			// note (as can be seen in the actual method slot.fillWithPlayers()) that only players of the same maxGroupSize are put together for these placements
+			// denotes how many spaces are allowed to remain free for a successful fill
+//		for (int fullnessGoalPlacementRound = 0; fullnessGoalPlacementRound<=maxGroupSizeOverall-1; fullnessGoalPlacementRound++) {
+			for (int fullnessGoalPlacementRound = 0; fullnessGoalPlacementRound<=1; fullnessGoalPlacementRound++) {	// XXX <=0 means only directly full groups
+				// denotes players that can be filled (maxGroupSize)
+				for (int maxGroupSizePlacementRound=maxGroupSizeOverall; maxGroupSizePlacementRound>3; maxGroupSizePlacementRound--) {
+					// fill to at least one player!
+					if ( maxGroupSizePlacementRound-fullnessGoalPlacementRound < 1) {
+						continue;
+					}
+					List<Slot> rankedSlots = new ArrayList<Slot>();
+					if (fullnessGoalPlacementRound==0) {
+						rankedSlots = slotsRankedByDemand;
+					}
+					else {
+						rankedSlots = slotsRankedByDemandReverse;
+					}
+					for (Slot slot : slotsRankedByDemand) {
+						if (slot.players.size()>0) {	// only fill into empty slots
+							continue;
+						}
+						boolean fillSuccessful = slot.fillWithPlayers(fullnessGoalPlacementRound,maxGroupSizePlacementRound,players);
+					}
+				}
+			}
 		}
 		
 		int unsuccessfulPlacements = 0;
@@ -167,24 +211,51 @@ public class Schedule {
 				// use strategy 2 or lower to consider only desired slots and all other constraints
 				Integer unsuccessfulPlacementsThisPlayer = schedule.placePlayer(player, 2, initialPlacementStrategy);	// XXX 2 instead of 3
 				// if player could not be assigned to enough slots with placement strategies, this is a problem
-				// --> try to make a push and reassign another player in order to fit them both
+				// --> try to make a push and reassign another player in order to fit both slots
 				// --> make sure an undesirable placement (in schedule.placePlayer) is always marked within the player
+				// try the push for all undesirable placements
+				
+				// first all slots which have been assigned in unsatisfying manner
 				for (Slot undesirableSlot : player.undesirablePlacements) {
-					System.out.println("Trying");
 					Schedule tempSchedule = schedule.clone();
 					boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
-							player.playerNr, undesirableSlot.slotId, undesirableSlot.clone(), 5, false, 0);
+							player.playerNr, false, undesirableSlot.slotId, undesirableSlot.clone(), 5, false, 0, false);	// XXX maybe set TRUE here to overfill
 					if (pushSuccessful) {
 						System.out.println("Managed to push player from undesirable slot into desirable one");
 						schedule.copyFromSchedule(tempSchedule);
+						player = schedule.players.get(player.playerNr);
 					}					
 				}
+				
+				
+//				check if this is really not possible to push any players! Make comments and prints
+				
+				// then as many slots as have not yet been assigned for this player
+				int nSlotsNotYetAssigned = player.nSlots-player.selectedSlots.size();
+				for (int n=1; n<=nSlotsNotYetAssigned; n++) {
+					Schedule tempSchedule = schedule.clone();
+					boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+							player.playerNr, true, null, null, 5, false, 0, false);	// XXX maybe set TRUE here to overfill
+					if (pushSuccessful) {
+						System.out.println("Managed to push place player by reassigning other one");
+						schedule.copyFromSchedule(tempSchedule);
+						player = schedule.players.get(player.playerNr);
+					}					
+				}
+				// then try the push for all failed placements (not even undesired one)
+//				for ()
 				// --> either loosen placement strategy and try again or assign manually at the end
 				// in any case, the player is marked so that the unsatisfied players can be tracked!
-				if (unsuccessfulPlacements > 0) {
-					unsuccessfulPlacements += unsuccessfulPlacementsThisPlayer;
+				int nSlotsStillNotYetAssigned = schedule.players.get(player.playerNr).nSlots-schedule.players.get(player.playerNr).selectedSlots.size();
+				if (nSlotsStillNotYetAssigned > 0) {
+					unsuccessfulPlacements += nSlotsStillNotYetAssigned;
+					// System.out.println("Number of unsuccessful placements = " + unsuccessfulPlacements);
 					player.slotNrSatisfied = false;
 				}
+//				if (unsuccessfulPlacements > 0) {
+//					unsuccessfulPlacements += unsuccessfulPlacementsThisPlayer;
+//					player.slotNrSatisfied = false;
+//				}
 			}
 		}
 		for (Player player : schedule.players.values()) {
@@ -192,10 +263,87 @@ public class Schedule {
 				System.out.println("Strategy for player " + player.playerNr + " = " + player.worstPlacementRound);
 			}
 		}
-		System.out.println("Number of unsuccessful placements = " + unsuccessfulPlacements);
 		return schedule;
 	}
 	
+	public void markSlotsWithDesirablePlayers(Map<Integer, Player> players) {
+		for (Slot slot : this.slots.values()) {
+			for (Player player : players.values()) {
+				if (player.isADesiredSlot(slot)) {
+					slot.desirablePlayers.add(player);
+				}
+			}
+		}
+		return;
+	}
+
+	public List<Slot> sortSlotsByPlayerDemand(Map<Integer, Player> players) {
+		Schedule tempSchedule = new Schedule(this.nCourts, this.nDays, this.firstHour, this.lastHour);
+		Map<Integer,Integer> slotFrequencies = new HashMap<Integer,Integer>();
+		// count player demand for a slot at a specific day/time -> choose court1 for a slotId
+		// --> the other slots at the same time/day on other courts will have the same demand and will be added later (copied demand from court1)
+		for (Player player : players.values()) {
+			for (Slot slot : player.desiredSlots) {
+				int slotId = tempSchedule.dayTimeCourt2slotId(slot.weekdayNr, slot.time, 1);
+				if (slotFrequencies.containsKey(slotId)) {
+					slotFrequencies.put(slotId, slotFrequencies.get(slotId)+1);
+				}
+				else {
+					slotFrequencies.put(slotId, 1);
+				}
+			}
+		}
+		System.out.println(slotFrequencies.toString());
+		// sort the slots by their demand frequency
+		// --> LEAST demanded slot first
+		List<Integer> sortedSlotIds = new ArrayList<Integer>();
+		for (Entry<Integer,Integer> entry : slotFrequencies.entrySet()) {
+			int slotId = entry.getKey();
+			int freq = entry.getValue();
+			if (sortedSlotIds.size()==0) {
+				sortedSlotIds.add(slotId);
+				continue;
+			}
+			else {
+				int position = 0;
+				for (Integer sortedSlotId : sortedSlotIds) {
+					if (freq < slotFrequencies.get(sortedSlotId)) {	// XXX
+						sortedSlotIds.add(position, slotId);
+						position++;					
+						break;
+					}
+					position++;
+					if (position==sortedSlotIds.size()) {
+						sortedSlotIds.add(slotId);
+						break;
+					}
+				}							
+			}
+		}
+		System.out.println(sortedSlotIds.toString());
+		// add also other slots at same time/day as they have the same demand
+		// --> make sure those slots and the initial one from court 1 actually exist
+		List<Slot> sortedSlots = new ArrayList<Slot>();
+		for (Integer tempId : sortedSlotIds) {
+			int day = this.slotId2day(tempId);
+			int time = this.slotId2time(tempId);
+			// check what day/time this sorted slot conforms to
+			for (int c=1; c<=this.nCourts; c++) {
+				// find all slots (courts) that exist in the schedule on the same time/day
+				int preciseId = this.dayTimeCourt2slotId(day, time, c);
+				if (this.slots.containsKey(preciseId)) {
+					Slot slot = this.slots.get(preciseId);
+					sortedSlots.add(slot);					
+				}
+			}
+		}
+		
+		for (Slot slot : sortedSlots) {
+			System.out.println(slot.slotId);			
+		}
+		return sortedSlots;
+	}
+
 	private void setFixedSlotsAndPlayers(Map<Integer, Player> players, String fixedGroupsFile) throws EncryptedDocumentException, InvalidFormatException, IOException {
 		// --> go through slots and put the player in the corresponding slot of the schedule; mark the slot as blocked for any other action
 		// mark the players with the corresponding slots and make sure they are blocked (should be as it is by reference)
@@ -358,6 +506,10 @@ public class Schedule {
 		// try to assign to player as many slots as it still needs to satisfy its number of desired lessons (#desiredSlots-#alreadySelectedSlots)
 		int nrOfNotYetAssignedSlots = player.nSlots-player.selectedSlots.size();
 		for (int s=1; s<=nrOfNotYetAssignedSlots; s++) {	// 		for (int s=1; s<=player.nSlots-player.selectedSlots.size(); s++) {
+			if (initialPlacementStrategy==3) {
+				
+				continue;
+			}
 			Slot currentlyOptimalSlot = null;
 //					List<Slot> currentlyLargestFeasibleSlots = new ArrayList<Slot>();
 			// b] Fill in a G3 first into a G3 before a G4 --> start by filling into groups with same maxGroupSize.
@@ -372,7 +524,7 @@ public class Schedule {
 					if (receiverGroupSizeLimit != slot.limitingPlayerMaxGroupSize()) {
 						continue;
 					}
-					if (slot.acceptsPlayer(player, strategy)) {
+					if (slot.acceptsPlayer(player, strategy, false)) {
 						// if first acceptable slot found
 						if (currentlyOptimalSlot == null) {
 							currentlyOptimalSlot = slot;
@@ -440,7 +592,7 @@ public class Schedule {
 				// No need to place player in undesirable slot here, bc a higher number strategy will allow to do so when the loop moves one strategy higher
 				// it will inherently move one number higher bc the output of this method is higher than 0 indicating that not all desired nSlots could be assigned
 				
-				// XXX may delete this entire thing
+				// X may delete this entire thing
 				// place the unsuccessful player in an early monday slot on a not active court for reassignement
 //				for (int day=0; day<=4; day++) {
 //					Slot slot = this.slots.get(1+day*3);
@@ -476,274 +628,6 @@ public class Schedule {
 	
 	
 	
-	public void write(String fileName) throws IOException {
-		
-		XMLOps.writeToFile(this, "FinalSchedule.xml");
-		XMLOps.writeToFile(this.players, "FinalSchedulePlayers.xml");
-		
-		XSSFWorkbook workbook = new XSSFWorkbook(); // new HSSFWorkbook() for generating `.xls` file
-		XSSFSheet sheet = workbook.createSheet("Junioren Sommertraining");
-
-		List<Row> rows = new ArrayList<Row>();
-		for (int r=0; r<=10+9*(this.lastHour-this.firstHour+1); r++) {
-			rows.add(sheet.createRow(r));
-		}
-		
-		int refRowNr;
-		int refColNr;
-		
-		Font slotTitleFont = workbook.createFont();
-		slotTitleFont.setBold(true);
-		XSSFCellStyle slotTitleCellStyle = workbook.createCellStyle();
-		slotTitleCellStyle.setBorderTop(BorderStyle.THIN);
-		slotTitleCellStyle.setFont(slotTitleFont);
-		slotTitleCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		XSSFColor slotTitleCellColor = new XSSFColor(new Color(220,220,220));
-		slotTitleCellStyle.setFillBackgroundColor(slotTitleCellColor);
-		slotTitleCellStyle.setFillForegroundColor(slotTitleCellColor);
-		
-
-		for (int time=this.firstHour; time<=this.lastHour; time++) {
-			refRowNr = this.slot2row(time);
-			Row row = rows.get(refRowNr);
-			row.setRowStyle(slotTitleCellStyle);
-			for (int day=1; day<=this.nDays; day++) {
-				for (int court=1; court<=this.nCourts; court++) {
-					refColNr = this.slot2col(day, court);
-					Cell slotCell = row.createCell(refColNr);
-					slotCell.setCellValue(this.slot2name(day,time,court)+" ("+this.dayTimeCourt2slotId(day, time, court)+")");
-					slotCell.setCellStyle(slotTitleCellStyle);
-//					Cell slotIdCell = row.createCell(refColNr+1);
-//					slotIdCell.setCellValue("("+this.dayTimeCourt2slotId(day, time, court)+")");
-				}
-			}
-		}
-
-		XSSFCellStyle whiteCellStyle = workbook.createCellStyle();
-		whiteCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		XSSFColor whiteCellColor = new XSSFColor(new Color(255,255,255));
-		whiteCellStyle.setFillBackgroundColor(whiteCellColor);
-		whiteCellStyle.setFillForegroundColor(whiteCellColor);
-		
-		XSSFCellStyle undesiredSlotStyle = workbook.createCellStyle();
-		undesiredSlotStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		XSSFColor undesiredCellColor = new XSSFColor(new Color(255,99,71));
-		undesiredSlotStyle.setFillBackgroundColor(undesiredCellColor);
-		undesiredSlotStyle.setFillForegroundColor(undesiredCellColor);
-		
-		CellStyle rightBorderCellStyle = workbook.createCellStyle();
-		rightBorderCellStyle.setBorderRight(BorderStyle.THICK);
-		CellStyle rightBorderCellStyleLight = workbook.createCellStyle();
-		rightBorderCellStyleLight.setBorderRight(BorderStyle.THIN);
-		
-		CellStyle leftBorderCellStyle = workbook.createCellStyle();
-		leftBorderCellStyle.setBorderLeft(BorderStyle.THICK);
-		
-		for (Slot slot : this.slots.values()) {
-			refColNr = this.slot2col(slot.weekdayNr, slot.courtNr);
-			refRowNr = this.slot2row(slot.time);
-			int playerNr = 1;
-			for (Player player : slot.players.values()) {
-				Row playerRow = rows.get(refRowNr + playerNr);
-				Cell nameCell = playerRow.createCell(refColNr);
-				// make sure to mark undesirable slots!
-				if (slot.isFrozen) {
-					nameCell.setCellValue("(**) "+player.name + " (" + player.linkablePlayers.size() + ")");
-				}				
-				else if (!player.isADesiredSlot(slot)) {
-					nameCell.setCellStyle(undesiredSlotStyle);
-					nameCell.setCellValue("(*) "+player.name + " (" + player.linkablePlayers.size() + ")");
-				}
-				// make sure to mark undesirable slots!
-				else {
-					nameCell.setCellValue(player.name + " (" + player.linkablePlayers.size() + ")");
-					XSSFCellStyle newColorCellStyle = workbook.createCellStyle();
-					newColorCellStyle.cloneStyleFrom(nameCell.getCellStyle());
-//					XSSFColor efficiencyColor = new XSSFColor(new Color(255,255,255));
-					Color efficiencyColor = new Color(255,255,0);
-					if (slot.players.size()==player.maxGroupSize) {
-						efficiencyColor = new Color(0,128,0);
-					}
-					else if (slot.players.size()==player.maxGroupSize-1){
-						efficiencyColor = new Color(154,205,50);	// light green for good usage of player tolerance
-					}
-					else if (slot.players.size()==player.maxGroupSize-2){
-						efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
-					}
-					else if (slot.players.size()<=player.maxGroupSize-3){
-						efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
-					}
-					newColorCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-					newColorCellStyle.setFillForegroundColor(new XSSFColor(efficiencyColor));
-					newColorCellStyle.setFillBackgroundColor(new XSSFColor(efficiencyColor));
-					nameCell.setCellStyle(newColorCellStyle);
-				}
-				Cell maxGroupSizeCell = playerRow.createCell(refColNr + 1);
-				maxGroupSizeCell.setCellValue(player.maxGroupSize);
-				Cell classCell = playerRow.createCell(refColNr + 2);
-				if (!player.category.equals("default")) 												{ classCell.setCellValue(player.category); }
-				else if (player.category.equals("default") && 0<player.strength && player.strength<10) 	{ classCell.setCellValue("R" + player.strength); }
-				else if (player.category.equals("default") && -4<player.strength && player.strength<1) 	{ classCell.setCellValue("N" + (4+player.strength)); }
-				else 																					{ classCell.setCellValue("?default?"); }
-				Cell ageCell = playerRow.createCell(refColNr + 3);
-				ageCell.setCellValue(player.age);
-				ageCell.setCellStyle(rightBorderCellStyleLight);
-				playerNr++;
-			}
-		}
-	  
-		// make list of players with nSlots not satisfied
-		int col = 72;	// make a colum with unsatisfied players after 6 days (3 courts w/ 4 columns) at 12 columns each
-		int rr = 2;	// start at third row for list of unsatisfied players
-		Row rrow;
-		Cell nameCell;
-		Cell classCell;
-		Cell ageCell;
-		Cell maxGroupSizeCell;
-		for (Player player : this.players.values()) {
-			int nUnsatisfiedSlots = player.nSlots-player.selectedSlots.size();
-			if (nUnsatisfiedSlots>0) {
-				rrow = sheet.getRow(rr);
-				nameCell = rrow.createCell(col+2);
-				nameCell.setCellValue(player.age + " - " + player.name);
-				nameCell.setCellStyle(undesiredSlotStyle);
-				Cell borderCell = rrow.createCell(col+3);
-				borderCell.setCellStyle(leftBorderCellStyle);
-				classCell = rrow.createCell(col);
-				if (player.strength==20) {
-					classCell.setCellValue("TC");					
-				}
-				else if (player.strength==21) {
-					classCell.setCellValue("G");					
-				}
-				else if (player.strength==22) {
-					classCell.setCellValue("O");					
-				}
-				else if (player.strength==23) {
-					classCell.setCellValue("R");					
-				}
-				else if (1 <= player.strength && player.strength <= 9){
-					classCell.setCellValue("R"+player.strength);
-				}
-				else if (-3 <= player.strength && player.strength <= 0) {
-					classCell.setCellValue("N"+(4+player.strength));
-				}
-				else {
-					classCell.setCellValue("??");
-				}
-				classCell.setCellStyle(slotTitleCellStyle);
-//				ageCell = rrow.createCell(col+1);
-//				ageCell.setCellValue(player.age);
-				maxGroupSizeCell = rrow.createCell(col+1);
-				maxGroupSizeCell.setCellValue(player.maxGroupSize+"er");
-				maxGroupSizeCell.setCellStyle(slotTitleCellStyle);
-				rr++;
-				for (int n=1; n<=nUnsatisfiedSlots; n++) {
-					for (Slot slot : player.desiredSlots) {
-						Row slotRow = sheet.getRow(rr);
-						Cell dayCell = slotRow.createCell(col);
-						dayCell.setCellValue(Slot.dayNr2Name(slot.weekdayNr));
-						Cell timeCell = slotRow.createCell(col+1);
-						timeCell.setCellValue(slot.time);
-						Cell whiteCell = slotRow.createCell(col+2);
-						whiteCell.setCellValue("");
-						whiteCell.setCellStyle(timeCell.getCellStyle());
-						borderCell = slotRow.createCell(col+3);
-						borderCell.setCellStyle(leftBorderCellStyle);
-						rr++;
-					}
-				}
-				
-			}
-		}
-		
-		
-		// for every player (maybe multiple times) make an entry with its name, groupsize strength and slots etc after saturday!
-		
-		// Resize all columns to fit the content size
-		for (int i = 0; i <= 250; i++) {
-			sheet.autoSizeColumn(i);
-		}
-		
-		// make lines to separate days (thick) and courts (thin)
-		// figure out till where the lines should be drawn
-		int maxRowCellNr = 0;
-		for (int r=2; r<62; r++) {
-			Row row = sheet.getRow(r);
-			if (row.getLastCellNum()>maxRowCellNr) {
-				maxRowCellNr = row.getLastCellNum();
-			}
-		}
-		for (int r=2; r<=sheet.getLastRowNum(); r++) {
-			Row row = sheet.getRow(r);
-			for (int c=0; c<=maxRowCellNr; c++) {
-				Cell cell;
-				if (row.getCell(c)==null) {
-					cell = row.createCell(c);
-					if ((r-2)%9==0) {
-						cell.setCellStyle(slotTitleCellStyle);
-					}
-				}
-				else {
-					cell = row.getCell(c);					
-				}
-				if ((c+1)%12==0) {
-					CellStyle newCellStyle = workbook.createCellStyle();
-					newCellStyle.cloneStyleFrom(cell.getCellStyle());
-					newCellStyle.setBorderRight(BorderStyle.THICK);
-					cell.setCellStyle(newCellStyle);
-				}
-				else if ((c+1-4)%12==0) {
-					CellStyle newCellStyle = workbook.createCellStyle();
-					newCellStyle.cloneStyleFrom(cell.getCellStyle());
-					newCellStyle.setBorderRight(BorderStyle.THIN);
-					cell.setCellStyle(newCellStyle);
-				}
-				else if ((c+1-8)%12==0) {
-					CellStyle newCellStyle = workbook.createCellStyle();
-					newCellStyle.cloneStyleFrom(cell.getCellStyle());
-					newCellStyle.setBorderRight(BorderStyle.THIN);
-					cell.setCellStyle(newCellStyle);
-				}
-			}
-//			Iterator<Cell> cellIter = row.cellIterator();
-//			int cellNr = 0;
-//			while (cellIter.hasNext()) {
-//				Cell cell = cellIter.next();
-//				if ((cellNr+1)%12==0) {
-//					CellStyle currentCellStyle = cell.getCellStyle();
-//					currentCellStyle.setBorderRight(BorderStyle.THICK);
-//				}
-//				else if ((cellNr+1-4)%12==0) {
-//					CellStyle currentCellStyle = cell.getCellStyle();
-//					currentCellStyle.setBorderRight(BorderStyle.THIN);
-//				}
-//				else if ((cellNr+1-8)%12==0) {
-//					CellStyle currentCellStyle = cell.getCellStyle();
-//					currentCellStyle.setBorderRight(BorderStyle.THIN);
-//				}
-//				cellNr++;
-//			}
-		}
-
-		// Make header after resizing so that first column is not super wide due to long title of first headerCell
-		Font headerFont = workbook.createFont();
-		headerFont.setBold(true);
-		headerFont.setFontHeightInPoints((short) 14);
-		headerFont.setColor(IndexedColors.RED.getIndex());
-		CellStyle headerCellStyle = workbook.createCellStyle();
-		headerCellStyle.setFont(headerFont);
-		Row headerRow = rows.get(0);
-		Cell titleCell = headerRow.createCell(0);
-		titleCell.setCellValue("Tennisschule Cyrill Keller - Junioren, Sommertraining");
-		titleCell.setCellStyle(headerCellStyle);
-
-		FileOutputStream fileOut = new FileOutputStream(fileName);
-		workbook.write(fileOut);
-		fileOut.close();
-		workbook.close();
-	}
-
 	public Schedule clone() {
 		Schedule copy = new Schedule();
 		for (Entry<Integer, Slot> slot : this.slots.entrySet()) {
@@ -794,6 +678,8 @@ public class Schedule {
 			System.out.println("BREAK Strategy: Shift/Push Group Size = "+groupSize);
 			this.breakUpGroups(groupSize, pushLevel);
 		}
+		this.postOptimization();
+
 //		int maxPullLevel = 5;
 //		for (int rounds=0; rounds<3; rounds++) {
 //			for (int groupSize : Arrays.asList(1,2,3)) {
@@ -812,6 +698,97 @@ public class Schedule {
 		players.putAll(this.players);
 	}
 
+
+	private void postOptimization() {
+		// SLOT ASSIGNMENT as for initial placement where it is also permitted to assign to empty slots
+		// first try to reassign undesirable slots, then try to assign unassigned slot requests of individual players
+		for (Player player : this.players.values()) {
+			// first all slots which have been assigned in unsatisfying manner
+			for (Slot undesirableSlot : player.undesirablePlacements) {
+				// System.out.println("Trying 1");
+				Schedule tempSchedule = this.clone();
+				boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+						player.playerNr, false, undesirableSlot.slotId, undesirableSlot.clone(), 5, false, 0, false);
+				if (pushSuccessful) {
+					System.out.println("Managed to push player from undesirable slot into desirable one");
+					this.copyFromSchedule(tempSchedule);
+					player = this.players.get(player.playerNr);
+				}					
+			}
+			// then as many slots as have not yet been assigned for this player
+			int nSlotsNotYetAssigned = player.nSlots-player.selectedSlots.size();
+			for (int n=1; n<=nSlotsNotYetAssigned; n++) {
+				// System.out.println("Trying 2");
+				Schedule tempSchedule = this.clone();
+				boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+						player.playerNr, true, null, null, 5, false, 0, false);
+				if (pushSuccessful) {
+					System.out.println("Managed to push place player by reassigning other one");
+					this.copyFromSchedule(tempSchedule);
+					player = this.players.get(player.playerNr);
+				}					
+			}
+		}
+		
+		// GROUP SIZE OPTIMIZATION (may make groups of 5 at the very end)
+		// -> do this for undesirable, unassigned slots and slots with maxGroupSze=4 but only 1 or 2 players --> note the min. receiver slot size of 4!
+		boolean allowOverfullGroups = true;
+		for (Player player : this.players.values()) {
+			if (player.maxGroupSize!=4) {
+				continue;
+			}
+			// this time allow shifting to form a group of 5
+			for (Slot undesirableSlot : player.undesirablePlacements) {
+				// System.out.println("Trying 1");
+				Schedule tempSchedule = this.clone();
+				boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+						player.playerNr, false, undesirableSlot.slotId, undesirableSlot.clone(), 5, false, 4, allowOverfullGroups);
+				if (pushSuccessful) {
+					System.out.println("Managed to push player from undesirable slot into desirable one");
+					this.copyFromSchedule(tempSchedule);
+					player = this.players.get(player.playerNr);
+				}					
+			}
+			// ---
+			int nSlotsNotYetAssigned = player.nSlots-player.selectedSlots.size();
+			for (int n=1; n<=nSlotsNotYetAssigned; n++) {
+				// System.out.println("Trying 2");
+				Schedule tempSchedule = this.clone();
+				boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+						player.playerNr, true, null, null, 5, false, 4, allowOverfullGroups);
+				if (pushSuccessful) {
+					System.out.println("Managed to push place player by reassigning other one");
+					this.copyFromSchedule(tempSchedule);
+					player = this.players.get(player.playerNr);
+				}					
+			}
+		}
+		// now for groups with maxGroupSize=4 players, but only 1 or two of them
+		// make list of slot id references so that loop can be performed with an external list and not actual slots which would give a concurrentModExcpetion
+		List<Integer> slotIdList = new ArrayList<Integer>();
+		slotIdList.addAll(this.slots.keySet());
+		for (int slotId : slotIdList) {
+			Slot slot = this.slots.get(slotId);
+			if (slot.players.size()>1) {		// XXX assign only single players to already full G4s or also groups with two players
+				continue;
+			}
+			for (Player player : slot.players.values()) {
+				if (player.maxGroupSize!=4) {
+					continue;
+				}
+				Schedule tempSchedule = this.clone();
+				boolean pushSuccessful = tempSchedule.shiftAndPushSinglePlayer(
+						player.playerNr, false, slot.slotId, slot.clone(), 5, false, 4, allowOverfullGroups);
+				if (pushSuccessful) {
+					System.out.println("Managed to post optimize a G4 player");
+					this.copyFromSchedule(tempSchedule);
+				}												
+			}
+		}
+		
+		
+		// IMPROVEMENT PROPOSALS FOR UNSATISFIED PLAYERS
+	}
 
 	@SuppressWarnings("unused")
 	@Deprecated
@@ -1056,7 +1033,7 @@ public class Schedule {
 				continue;
 			}
 			if (otherslot.players.size() < 4) {
-				if (otherslot.isCompatibleWithPlayer(player)) {
+				if (otherslot.isCompatibleWithPlayer(player, false)) {
 					System.out.println("Receiver Slot Size ==> "+otherslot.players.size());
 					player.removeSelectedSlot(slot);
 					player.addSelectedSlot(otherslot);
@@ -1166,7 +1143,8 @@ public class Schedule {
 			Slot initialPusherSlotCopy = this.slots.get(slotId).clone();
 			boolean pushSuccessful;
 			// last argument is false indicating that this is an initial call and not a call after attempting a push
-			pushSuccessful = pushedSchedule.shiftAndPushSinglePlayer(player.playerNr, slotId, initialPusherSlotCopy, pushLevel, false, 0);
+			pushSuccessful = pushedSchedule.shiftAndPushSinglePlayer(player.playerNr, false, slotId,
+					initialPusherSlotCopy, pushLevel, false, 0, false);
 			if (pushSuccessful) {
 				minimumOneSuccessfulPush = true;
 			}
@@ -1195,8 +1173,8 @@ public class Schedule {
 	// can change actual schedule within this method
 		// if it fails, just return false and the calling code will consider the push attempt obsolete and will keep using the old code
 		// IMPORTANT: The underlying schedule is only modified (synced) if a push can successfully be performed. Else, it remains unaltered!
-		public boolean shiftAndPushSinglePlayer(Integer playerNr, Integer slotId, Slot initialPusherSlotCopy,
-				Integer pushLevel, boolean methodCalledAfterPush, int finalShiftGroupSizeMinimum) {
+		public boolean shiftAndPushSinglePlayer(Integer playerNr, boolean playerHasNotYetBeenPlaced, Integer slotId, Slot initialPusherSlotCopy,
+				Integer pushLevel, boolean methodCalledAfterPush, int finalShiftGroupSizeMinimum, boolean allowOverfullGroups) {
 			
 			Schedule tempSchedule = this.clone();
 			
@@ -1212,21 +1190,40 @@ public class Schedule {
 			int thisSlotSizeBeforePush;
 			// CAUTION: if method was called after a push, the group has been added a player and is one size larger than originally
 			// we need the size before the push to decide upon the max size of the receiver group below -> therefore reduce current size by one
-			if (methodCalledAfterPush) {
-				thisSlotSizeBeforePush = this.slots.get(slotId).players.size()-1;
+			
+			if (playerHasNotYetBeenPlaced) {
+				thisSlotSizeBeforePush = 0;
 			}
 			else {
-				thisSlotSizeBeforePush = this.slots.get(slotId).players.size();
+				if (methodCalledAfterPush) {
+					thisSlotSizeBeforePush = this.slots.get(slotId).players.size()-1;
+				}
+				else {
+					thisSlotSizeBeforePush = this.slots.get(slotId).players.size();
+				}				
 			}
 			
 
 			List<Integer> pushGroupSizeList = new ArrayList<Integer>();
-			if (this.slots.get(slotId).category.equals("TC")) {
-				pushGroupSizeList = Arrays.asList(7,8,6,5,4,3,2,1);
+			
+			if (this.players.get(playerNr).category.equals("TC")) {
+				pushGroupSizeList.addAll(Arrays.asList(7,8,6,5,4,3,2,1));
 			}
 			else {
-				pushGroupSizeList = Arrays.asList(3,2,1);	// old version is worse: Arrays.asList(3,2,1);
+				pushGroupSizeList.addAll(Arrays.asList(3,2,1));	// old version is worse: Arrays.asList(3,2,1);
 			}
+			
+			// if this is an initial player placement pushs (resp. the final shifts) can also be performed into an empty slot
+			// this is helpful if there was an unsuccessful placement of a player, but it could be pushed into a group successfully
+			// from where another player is pushed into a possibly empty slot
+			if (playerHasNotYetBeenPlaced) {
+				pushGroupSizeList.add(0);
+			}
+			if (allowOverfullGroups) {
+				pushGroupSizeList.clear();
+				pushGroupSizeList.add(4);	// note that only G4 groups can be overfilled this way
+			}
+			
 			Boolean pushSuccessful = false;
 			for (int pushGroupSize : pushGroupSizeList) {
 				// shifting/pushing is possible to groups with a minimum size of    Size(receiverGroup) >= Size(senderGroup)-1
@@ -1236,8 +1233,8 @@ public class Schedule {
 				if (pushGroupSize<thisSlotSizeBeforePush) {	// alternative: (pushGroupSize<thisSlotSizeBeforePush-1)
 					continue;
 				}
-				pushSuccessful = tempSchedule.shiftAndPushSinglePlayerToGroupWithSizeX(slotId, initialPusherSlotCopy, playerNr,
-						pushGroupSize, pushLevel, methodCalledAfterPush, finalShiftGroupSizeMinimum);
+				pushSuccessful = tempSchedule.shiftAndPushSinglePlayerToGroupWithSizeX(slotId, playerHasNotYetBeenPlaced, initialPusherSlotCopy, playerNr,
+						pushGroupSize, pushLevel, methodCalledAfterPush, finalShiftGroupSizeMinimum, allowOverfullGroups);
 				if (pushSuccessful) {
 					this.copyFromSchedule(tempSchedule);
 					return true;
@@ -1253,8 +1250,9 @@ public class Schedule {
 
 	
 	
-	public Boolean shiftAndPushSinglePlayerToGroupWithSizeX(Integer slotId, Slot initialPusherSlotCopy, Integer playerNr, int pushGroupSize,
-			int pushLevel, boolean methodCalledAfterPush, int finalShiftMinGroupSize) {
+	public Boolean shiftAndPushSinglePlayerToGroupWithSizeX(Integer slotId, boolean playerHasNotYetBeenPlaced, 
+			Slot initialPusherSlotCopy, Integer playerNr, int pushGroupSize,
+			int pushLevel, boolean methodCalledAfterPush, int finalShiftMinGroupSize, boolean allowOverfullGroups) {
 		
 		// make a temporary copy, which is modified in the process --> If successfully modified, the initial schedule is synced with the modified one
 		// this avoids messing up the initial schedule or ending in a concurrentModificationException due to implicit referencing
@@ -1263,14 +1261,21 @@ public class Schedule {
 //		System.out.println("Attempting shift/push into groupSize = "+pushGroupSize);
 
 		// build reference to exactly the slot and player to be pushed
-		Slot slot = workingSchedule.slots.get(slotId);
+		Slot slot = null;
 		Player player;
-		// through the implicit loops a player might no more be within a group (return false instead of proceeding with a null pointer)
-		if (slot.players.containsKey(playerNr)) {
-			player = slot.players.get(playerNr);			
+		if (!playerHasNotYetBeenPlaced) {
+			slot = workingSchedule.slots.get(slotId);
+			// through the implicit loops a player might no more be within a group (return false instead of proceeding with a null pointer)
+			if (slot.players.containsKey(playerNr)) {
+				player = slot.players.get(playerNr);			
+			}
+			else {
+				return false;
+			}
 		}
 		else {
-			return false;
+			// super important that referring to the working schedule
+			player = workingSchedule.players.get(playerNr);
 		}
 		
 		// try all slots for a shift and chose the optimal one
@@ -1288,34 +1293,43 @@ public class Schedule {
 				continue;
 			}
 			// do not push to same slot again!
-			if (otherslot.slotId==slot.slotId) {
+			if (!playerHasNotYetBeenPlaced && otherslot.slotId==slot.slotId) {
 				continue;
 			}
 			// only push to groups with desired size
 			if (otherslot.players.size()!=pushGroupSize) {
 				continue;
 			}
-			// only if otherslot does not interfere with other slots selected by player, which are on the same day --> never two trainings on one day
-			// (note that on the day the slot is dropped another slot can be chosen --> the day is not blocked as for other selected slots)
-			if (!player.canMoveThisSlot2OtherSlot(slot,otherslot)) {
-				continue;
+//			System.out.println("Other slot has desired push group size = "+pushGroupSize);
+			if (playerHasNotYetBeenPlaced) {
+//				System.out.println("Checking if otherSlot accepts the new player (that has not yet been placed)");
+				if(!otherslot.acceptsPlayer(player, 2, allowOverfullGroups)) {
+					continue;
+				}
+			}
+			else {
+				// only if otherslot does not interfere with other slots selected by player, which are on the same day --> never two trainings on one day
+				// (note that on the day the slot is dropped another slot can be chosen --> the day is not blocked as for other selected slots)
+				if (!player.canMoveThisSlot2OtherSlot(slot,otherslot)) {
+					continue;
+				}				
 			}
 			// only shift or push into desired slots
 			if (! player.isADesiredSlot(otherslot)) {
 				continue;
 			}
-			
+//			System.out.println("Is a desired slot and accepts the new player");
 			// %%% SHIFT %%% attempt the shift (only if new group accepts player and there is a free space)
 			// the initialPusherSlotCopy is the benchmark to decide if the shift/push leads to an actual improvement of the entire schedule
 			// if there is only a shift without previous push, the reference slot is obviously the current sending slot from where the player originates
 			// if the shift comes after a push, a copy of the originating slot is handed over through the method as initialPusherSlotCopy and is to be compared
-			if (otherslot.isCompatibleWithPlayer(player) && shiftIsFormallyPermitted(initialPusherSlotCopy,player,otherslot)) {
+			if (otherslot.isCompatibleWithPlayer(player, allowOverfullGroups) && shiftIsFormallyPermitted(initialPusherSlotCopy,player,otherslot)) {
 				if (optimalReceiverSlot==null) {
 					optimalReceiverSlot = otherslot;
 				}
 				// maybe two receiver slots are found. choose the one with better overall improvement
 				// --> shift to group, where average maxGSize is closer to the maxGSize of the player to be shifted
-				else if (otherslot.isPreferrableReceiverSlotTo(optimalReceiverSlot, player)) {
+				else if (allowOverfullGroups || otherslot.isPreferrableReceiverSlotTo(optimalReceiverSlot, player)) {
 					optimalReceiverSlot = otherslot;
 				}
 				else {
@@ -1327,15 +1341,21 @@ public class Schedule {
 		// if no feasible receiver slot has been found for a shift, the procedure for a push is initiated below
 		if (optimalReceiverSlot!=null) {
 			System.out.println("Receiver Slot Size ==> "+optimalReceiverSlot.players.size());
-			slot.players.remove(player.playerNr);			
+			if (!playerHasNotYetBeenPlaced) {
+				slot.players.remove(player.playerNr);				
+			}
 			optimalReceiverSlot.addPlayer(player.playerNr,player);
-			player.removeSelectedSlot(slot);
+			if (!playerHasNotYetBeenPlaced) {
+				player.removeSelectedSlot(slot);				
+			}
 			player.addSelectedSlot(optimalReceiverSlot);
 			if (optimalReceiverSlot.category.equals("empty")) {
 				optimalReceiverSlot.category = player.category;
 			}
-			if (slot.players.size()==0) {
-				slot.category = "empty";
+			if (!playerHasNotYetBeenPlaced) {
+				if (slot.players.size()==0) {
+					slot.category = "empty";
+				}				
 			}
 			this.copyFromSchedule(workingSchedule);
 			return true;
@@ -1343,11 +1363,6 @@ public class Schedule {
 		else {
 			// do nothing and let code perform the the push attempt routine below
 		}
-		
-//		if (pushGroupSize!=4) {
-//			return false;
-//		}
-		
 		// %%% PUSH %%% attempt the push (if there is no free space, but another player could be kicked out so that new remaining group accepts new player)
 			for(Map.Entry<Integer,Slot> entry: slotList) {
 				Slot otherslot = entry.getValue();
@@ -1359,7 +1374,7 @@ public class Schedule {
 					continue;
 				}
 				// do not push to same slot again!
-				if (otherslot.slotId==slot.slotId) {
+				if (!playerHasNotYetBeenPlaced && otherslot.slotId==slot.slotId) {
 					continue;
 				}
 				// only push to groups with minimum size
@@ -1374,8 +1389,15 @@ public class Schedule {
 				}
 				// only if otherslot does not interfere with other slots selected by player, which are on the same day --> never two trainings on one day
 				// (note that on the day the slot is dropped another slot can be chosen --> the day is not blocked as for other selected slots)
-				if (!player.canMoveThisSlot2OtherSlot(slot,otherslot)) {
-					continue;
+				if (playerHasNotYetBeenPlaced) {
+					if(!otherslot.groupVirtuallyAcceptsPlayer(player)) {
+						continue;
+					}
+				}
+				else {
+					if (!player.canMoveThisSlot2OtherSlot(slot,otherslot)) {
+						continue;
+					}				
 				}
 //			List<Player> playersToBeKickedOut = otherslot.pushPlayerAndKickOtherplayer(player);
 				// push is only permitted if new player fits into new group as good as the kicked out player has (no worsening condition)
@@ -1383,8 +1405,10 @@ public class Schedule {
 				if (playersToBeKickedOut.size() > 0) {
 					// attempting to push player in other slot
 					// see below: if no other player could be pushed out of otherslot successfully and a group of 5 would result, the initial push is reversed
-					slot.players.remove(player.playerNr);
-					player.removeSelectedSlot(slot);
+					if (!playerHasNotYetBeenPlaced) {
+						slot.players.remove(player.playerNr);						
+						player.removeSelectedSlot(slot);
+					}
 					otherslot.addPlayer(player.playerNr,player);
 					player.addSelectedSlot(otherslot);
 					if (otherslot.category.equals("empty")) {
@@ -1408,8 +1432,9 @@ public class Schedule {
 //								}
 //							}
 //						}
-						pushSuccessful = workingSchedule.shiftAndPushSinglePlayer(playerToBeKickedOut.playerNr, otherslot.slotId,
-								initialPusherSlotCopy, pushLevel-1, true, pushGroupSize);
+						// here playerHasNotYetBeenPlaced must always be false bc we are reassigning a kickout player!
+						pushSuccessful = workingSchedule.shiftAndPushSinglePlayer(playerToBeKickedOut.playerNr, false, otherslot.slotId,
+								initialPusherSlotCopy, pushLevel-1, true, pushGroupSize, allowOverfullGroups);
 						// if push successful, pushSinglePlayer will have modified schedule
 						if (pushSuccessful) {
 							this.copyFromSchedule(workingSchedule);
@@ -1421,9 +1446,13 @@ public class Schedule {
 					}
 					// if code has arrived here: reverse the initial push bc no other player could be pushed out from the now group of 5!
 					player.removeSelectedSlot(otherslot);
-					player.addSelectedSlot(slot);
+					if (!playerHasNotYetBeenPlaced) {
+						player.addSelectedSlot(slot);						
+					}
 					otherslot.players.remove(player.playerNr);
-					slot.addPlayer(player.playerNr,player);
+					if (!playerHasNotYetBeenPlaced) {
+						slot.addPlayer(player.playerNr,player);						
+					}
 					if (otherslot.players.size()==0) {
 						otherslot.category = "empty";
 					}
@@ -1434,6 +1463,11 @@ public class Schedule {
 
 	private boolean shiftIsFormallyPermitted(Slot slot, Player player, Slot otherslot) {
 
+		// if there is no initial slot (bc this may be an initial placement), any placement is better than no placement, so just returns true
+		if (slot == null) {
+			return true;
+		}
+		
 		// if receiver group is same size or larger, shift is always formally permitted (as long as other constraints in the calling method can be respected)
 		if (otherslot.players.size()>=slot.players.size()) {
 			return true;
@@ -1619,7 +1653,7 @@ public class Schedule {
 			}
 			if (otherslot.players.size() == pullSlotSize) {
 				for (Player player : otherslot.players.values()) {
-					if (slot.acceptsPlayer(player, 2)) {
+					if (slot.acceptsPlayer(player, 2, false)) {
 						Schedule initialBackupSchedule = this.clone();
 						slot.addPlayer(player.playerNr, player);
 						player.addSelectedSlot(slot);

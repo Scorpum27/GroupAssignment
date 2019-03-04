@@ -152,6 +152,15 @@ public class Player {
 			return true;
 		}
 	}
+
+	public boolean hasSlotOnSameDay(Slot slot) {
+		for (Slot selectedSlot : this.selectedSlots) {
+			if (slot.weekdayNr==selectedSlot.weekdayNr) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 }
 

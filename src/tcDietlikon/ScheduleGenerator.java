@@ -16,20 +16,15 @@
 
 
 // IDEAS & TUNING
-// XXX DATA-SET --> make list of most wanted slots and fill in accordingly maybe rather place players first in desirable slots!!! 
-//		--> Check impact of reverse linkability order with new TC player sets
-//		--> in initial place players
-//		--> in currentlyOptimalReceiverSlot
-//		--> or completely random?
-// XXX Try to explicitly push players with undesired slots! --> may just change their current undesired slot to another slot and then be combinable!!
+// make list of most wanted slots and fill in accordingly maybe rather place players random/first desirable (initialPlacePlayers, currentlyOptimalReceiverSlot)
+// XXX explicitly push players with undesired slots! --> may just change their current undesired slot to another slot and then be combinable!!
 // IF player cannot be placed
 // 1. try to make an initial push/pull (can also push a player to a smaller or yet empty slot)
 //		--> see if this strategy is good or rather do not use point 1 -> tend to push highly linkable ones first
 //		--> could also wait until all players are placed and then take out of basket and try to assign by pushing!
 // 2. If fails, do not place at beginning (keep in basket)
 // 3. At the end, place undesired players again with smaller groups, groups of 5, and completely empty slots!
-// 4. also try to put single (or double!) players into already full groups at the very end to get groups of 5 if need be
-
+// 4. also try to put single (or double!) players into already full groups at the very end to push or to get groups of 5 if need be
 //	 --> source of problem may be: undesired placement takes place into a G4, then it can only be shifted if it comes out of G4, which is only possible into G3/G4
 //	 --> may loosen placement rules at the end or not put in undesiredSlot at the start
 //	 --> or at the start make an immediate push with another player --> and push those players who have highest linkability first!
@@ -45,11 +40,22 @@
 // - manual inputs for very strong players
 // - Problem: slots change with every push -> do not know if path actually exists
 
+
 // TUNING
 // - pushLevel --> make list of most wanted slots and fill in accordingly maybe rather place players first in desirable slots!!! 
 // - try pushGroupSize only until size (pushGroupSize<thisSlotSizeBeforePush-1) or just (pushGroupSize<thisSlotSizeBeforePush)
 // - use 4 as pushGroup size in arrays or not
 // - break or shift/push first? (current optimal = shift&push, then break)
+
+
+//Next:
+// - shift entire groups to a single player or to a slot, where single player could go
+// --> make this general by saying that could pull from several slots to an empty slot!! (maybe specifically pull players together that are linkable)
+// - pull/push tree procedures
+// PROPOSAL SECTION
+//	--> dates for first adding to unfull groups, than G5
+//	--> also make list of availability, linkable players
+
 
 package tcDietlikon;
 
@@ -65,12 +71,13 @@ public class ScheduleGenerator {
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException, EncryptedDocumentException, InvalidFormatException {
 	
-		int pushLevel = 3;
-		boolean createNewPlayerSet = true;
+		int pushLevel = 5;
+		boolean createNewPlayerSet = false;
 		boolean useFixedSlotFile = false;
 		int initialPlacementStrategy = 2;
 		boolean doNotLoadSelectedSlots = true;
 		boolean loadPlayers = true;
+		boolean useFullSlotFilling = false;
 
 	// create or load players
 		Map<Integer,Player> players = new HashMap<Integer,Player>();
@@ -99,7 +106,7 @@ public class ScheduleGenerator {
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
 		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
 		String fixedGroupsFile = "Fixe_Gruppen.xlsx";
-		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile, initialPlacementStrategy, fixedGroupsFile, useFixedSlotFile);
+		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile, initialPlacementStrategy, fixedGroupsFile, useFixedSlotFile, useFullSlotFilling);
 		schedule.verifyCompliance(players);
 
 	// refine schedule to be more efficient
@@ -111,7 +118,8 @@ public class ScheduleGenerator {
 		schedule.verifyCompliance(players);
 		
 	// write schedule
-		schedule.write("Sommertraining_Einteilung.xlsx");
+		ScheduleWriter scheduleWriter = new ScheduleWriter(schedule);
+		scheduleWriter.write("Sommertraining_Einteilung.xlsx");
 
 	}
 

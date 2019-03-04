@@ -3,6 +3,7 @@ package tcDietlikon;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -441,6 +442,90 @@ public class PlayerUtils {
 			playersReverse.add(0, player);
 		}
 		return playersReverse;
+	}
+
+	public static List<Player> findOptimalPlayerCombination(List<Player> placedPlayers, List<Player> feasiblePlayers, int sizeGoal, double linkabilityMinimum) {
+//		System.out.println("Trying to find an optimal combination of nFeasiblePlayers="+feasiblePlayers.size());
+		
+		List<Player> tempOptimalPlayers = new ArrayList<Player>();
+		
+		// try to add a new player to the list with a loop
+		outerLoop:
+		for (Player otherPlayer : feasiblePlayers) {
+			// jump over players who will not be able to fulfill sizeGoal if placed in the group (--> tehy would be limiting)
+			// just for completeness, actually only allowable players are in initial lot of feasible players (all have same maxGroupSize)
+			if (otherPlayer.maxGroupSize<sizeGoal) {
+				continue;
+			}
+			// XXX this loop should not be necessary as the feasible players are already selected by compatibility --> see below for tempFeasiblePlayers
+			for (Player player : placedPlayers) {
+				if (!player.isCompatibleWithOtherPlayer(otherPlayer)) {
+					System.out.println("Actually, a player was not compatible and could not be added");
+					System.exit(0);
+					continue outerLoop;
+				}
+			}
+			// if the code has arrived here, the otherPlayer is compatible with all already placed players
+			// check now if slot already fulfills size goal (-1 bc new player has not yet been added)
+			if (placedPlayers.size()==sizeGoal-1) {
+				double linkability = 0.0;
+				for (Player player : placedPlayers) {
+					linkability += player.linkability;
+				}
+				linkability += otherPlayer.linkability;
+				if (linkability<linkabilityMinimum) {
+					linkabilityMinimum = linkability;
+					tempOptimalPlayers.clear();
+					for (Player player : placedPlayers) {
+						tempOptimalPlayers.add(player);
+					}
+					tempOptimalPlayers.add(otherPlayer);
+				}
+			}
+			else {
+				List<Player> tempPlacedPlayers = new ArrayList<Player>();
+				for (Player player : placedPlayers) {
+					tempPlacedPlayers.add(player);
+				}
+				tempPlacedPlayers.add(otherPlayer);
+				// adapt feasiblePlayers here
+				List<Player> tempFeasiblePlayers = new ArrayList<Player>();
+				for (Player potentialFeasiblePlayer : feasiblePlayers) {
+					// do not add otherPlayer to feasible list as it is already added to the group now
+					if (potentialFeasiblePlayer.equals(otherPlayer)) {
+						continue;
+					}
+					// add only those players who are ALSO feasible with the new player in the group (otherPayer)
+					if (otherPlayer.isCompatibleWithOtherPlayer(potentialFeasiblePlayer)) {
+						tempFeasiblePlayers.add(potentialFeasiblePlayer);
+					}
+				}
+				if (tempPlacedPlayers.size()+tempFeasiblePlayers.size()<sizeGoal) {
+					continue outerLoop;
+				}
+				tempPlacedPlayers = findOptimalPlayerCombination(tempPlacedPlayers, tempFeasiblePlayers, sizeGoal, linkabilityMinimum);
+				if (tempPlacedPlayers.size()>0) {
+					// actually the lower than minLinkability condition is obsolete, bc if a size>0 array is returned, the linkMin had to be achieved anyways
+					// XXX --> could check this with a condition :-)
+					double linkability = 0.0;
+					for (Player player : tempPlacedPlayers) {
+						linkability += player.linkability;
+					}
+					if (linkability<linkabilityMinimum) {
+						linkabilityMinimum = linkability;
+						tempOptimalPlayers.clear();
+						for (Player player : placedPlayers) {
+							tempOptimalPlayers.add(player);
+						}
+						tempOptimalPlayers.add(otherPlayer);
+					}
+				}
+			}
+		}
+		// this will be empty array if no feasible combination has been found
+		// and it will fulfill the sizeGoal if a feasible combination was found --> will return the optimal combination 
+		return tempOptimalPlayers;
+		
 	}
 
 
