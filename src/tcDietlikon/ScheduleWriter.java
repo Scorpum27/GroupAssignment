@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -19,14 +20,34 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+// TODO
+// - how to deal with same player profiles
+// - Vorschläge aussortieren --> die mit grössten Gruppen als Prio setzen, dann ev. den Tag noch diversifizieren
+// - Wenn keine termine, dann einen Minusstrich machen
+// - Linksbündigkeit für rechte Spalte
+
 public class ScheduleWriter {
 
+	XSSFWorkbook defaultWorkbook;
 	Schedule schedule;
+	CellStyle chapterCellStyle;
+	List<XSSFCellStyle> cellStyles;
+	XSSFCellStyle nSlotsXCellStyle;
+	XSSFCellStyle sectionTitleStyle;
+	CellStyle rightBorderCellStyle;
+	CellStyle rightBorderCellStyleLight;
+	CellStyle leftBorderCellStyle;
+	XSSFCellStyle whiteCellStyle;
+	XSSFCellStyle undesiredSlotStyle;
+	XSSFCellStyle slotTitleCellStyle;
+	CellStyle headerCellStyle;
+	
 	
 	public ScheduleWriter() {
 	}
 	
 	public ScheduleWriter(Schedule schedule) {
+		this();
 		this.schedule = schedule;
 	}
 	
@@ -35,8 +56,9 @@ public class ScheduleWriter {
 		XMLOps.writeToFile(this.schedule, "FinalSchedule.xml");
 		XMLOps.writeToFile(this.schedule.players, "FinalSchedulePlayers.xml");
 		
-		XSSFWorkbook workbook = new XSSFWorkbook(); // new HSSFWorkbook() for generating `.xls` file
-		XSSFSheet sheet = workbook.createSheet("Junioren Sommertraining");
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		this.loadStylesAndWorkbook(workbook);
+		XSSFSheet sheet = this.defaultWorkbook.createSheet("Wintertraining");
 
 		List<Row> rows = new ArrayList<Row>();
 		for (int r=0; r<=10+9*(this.schedule.lastHour-this.schedule.firstHour+1); r++) {
@@ -45,17 +67,6 @@ public class ScheduleWriter {
 		
 		int refRowNr;
 		int refColNr;
-		
-		Font slotTitleFont = workbook.createFont();
-		slotTitleFont.setBold(true);
-		XSSFCellStyle slotTitleCellStyle = workbook.createCellStyle();
-		slotTitleCellStyle.setBorderTop(BorderStyle.THIN);
-		slotTitleCellStyle.setFont(slotTitleFont);
-		slotTitleCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		XSSFColor slotTitleCellColor = new XSSFColor(new Color(220,220,220));
-		slotTitleCellStyle.setFillBackgroundColor(slotTitleCellColor);
-		slotTitleCellStyle.setFillForegroundColor(slotTitleCellColor);
-		
 
 		for (int time=this.schedule.firstHour; time<=this.schedule.lastHour; time++) {
 			refRowNr = this.schedule.slot2row(time);
@@ -72,26 +83,6 @@ public class ScheduleWriter {
 				}
 			}
 		}
-
-		XSSFCellStyle whiteCellStyle = workbook.createCellStyle();
-		whiteCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		XSSFColor whiteCellColor = new XSSFColor(new Color(255,255,255));
-		whiteCellStyle.setFillBackgroundColor(whiteCellColor);
-		whiteCellStyle.setFillForegroundColor(whiteCellColor);
-		
-		XSSFCellStyle undesiredSlotStyle = workbook.createCellStyle();
-		undesiredSlotStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-		XSSFColor undesiredCellColor = new XSSFColor(new Color(255,99,71));
-		undesiredSlotStyle.setFillBackgroundColor(undesiredCellColor);
-		undesiredSlotStyle.setFillForegroundColor(undesiredCellColor);
-		
-		CellStyle rightBorderCellStyle = workbook.createCellStyle();
-		rightBorderCellStyle.setBorderRight(BorderStyle.THICK);
-		CellStyle rightBorderCellStyleLight = workbook.createCellStyle();
-		rightBorderCellStyleLight.setBorderRight(BorderStyle.THIN);
-		
-		CellStyle leftBorderCellStyle = workbook.createCellStyle();
-		leftBorderCellStyle.setBorderLeft(BorderStyle.THICK);
 		
 		for (Slot slot : this.schedule.slots.values()) {
 			refColNr = this.schedule.slot2col(slot.weekdayNr, slot.courtNr);
@@ -111,7 +102,7 @@ public class ScheduleWriter {
 				// make sure to mark undesirable slots!
 				else {
 					nameCell.setCellValue(player.name + " (" + player.linkablePlayers.size() + ")");
-					XSSFCellStyle newColorCellStyle = workbook.createCellStyle();
+					XSSFCellStyle newColorCellStyle = this.defaultWorkbook.createCellStyle();
 					newColorCellStyle.cloneStyleFrom(nameCell.getCellStyle());
 //					XSSFColor efficiencyColor = new XSSFColor(new Color(255,255,255));
 					Color efficiencyColor = new Color(255,255,0);
@@ -186,27 +177,7 @@ public class ScheduleWriter {
 				Cell borderCell = rrow.createCell(col+3);
 				borderCell.setCellStyle(leftBorderCellStyle);
 				classCell = rrow.createCell(col);
-				if (player.strength==20) {
-					classCell.setCellValue("TC");					
-				}
-				else if (player.strength==21) {
-					classCell.setCellValue("G");					
-				}
-				else if (player.strength==22) {
-					classCell.setCellValue("O");					
-				}
-				else if (player.strength==23) {
-					classCell.setCellValue("R");					
-				}
-				else if (1 <= player.strength && player.strength <= 9){
-					classCell.setCellValue("R"+player.strength);
-				}
-				else if (-3 <= player.strength && player.strength <= 0) {
-					classCell.setCellValue("N"+(4+player.strength));
-				}
-				else {
-					classCell.setCellValue("??");
-				}
+				classCell.setCellValue(player.strength2string());					
 				classCell.setCellStyle(slotTitleCellStyle);
 //				ageCell = rrow.createCell(col+1);
 //				ageCell.setCellValue(player.age);
@@ -264,60 +235,466 @@ public class ScheduleWriter {
 					cell = row.getCell(c);					
 				}
 				if ((c+1)%12==0) {
-					CellStyle newCellStyle = workbook.createCellStyle();
+					CellStyle newCellStyle = this.defaultWorkbook.createCellStyle();
 					newCellStyle.cloneStyleFrom(cell.getCellStyle());
 					newCellStyle.setBorderRight(BorderStyle.THICK);
 					cell.setCellStyle(newCellStyle);
 				}
 				else if ((c+1-4)%12==0) {
-					CellStyle newCellStyle = workbook.createCellStyle();
+					CellStyle newCellStyle = this.defaultWorkbook.createCellStyle();
 					newCellStyle.cloneStyleFrom(cell.getCellStyle());
 					newCellStyle.setBorderRight(BorderStyle.THIN);
 					cell.setCellStyle(newCellStyle);
 				}
 				else if ((c+1-8)%12==0) {
-					CellStyle newCellStyle = workbook.createCellStyle();
+					CellStyle newCellStyle = this.defaultWorkbook.createCellStyle();
 					newCellStyle.cloneStyleFrom(cell.getCellStyle());
 					newCellStyle.setBorderRight(BorderStyle.THIN);
 					cell.setCellStyle(newCellStyle);
 				}
 			}
-//			Iterator<Cell> cellIter = row.cellIterator();
-//			int cellNr = 0;
-//			while (cellIter.hasNext()) {
-//				Cell cell = cellIter.next();
-//				if ((cellNr+1)%12==0) {
-//					CellStyle currentCellStyle = cell.getCellStyle();
-//					currentCellStyle.setBorderRight(BorderStyle.THICK);
-//				}
-//				else if ((cellNr+1-4)%12==0) {
-//					CellStyle currentCellStyle = cell.getCellStyle();
-//					currentCellStyle.setBorderRight(BorderStyle.THIN);
-//				}
-//				else if ((cellNr+1-8)%12==0) {
-//					CellStyle currentCellStyle = cell.getCellStyle();
-//					currentCellStyle.setBorderRight(BorderStyle.THIN);
-//				}
-//				cellNr++;
-//			}
 		}
 
 		// Make header after resizing so that first column is not super wide due to long title of first headerCell
-		Font headerFont = workbook.createFont();
-		headerFont.setBold(true);
-		headerFont.setFontHeightInPoints((short) 14);
-		headerFont.setColor(IndexedColors.RED.getIndex());
-		CellStyle headerCellStyle = workbook.createCellStyle();
-		headerCellStyle.setFont(headerFont);
 		Row headerRow = rows.get(0);
 		Cell titleCell = headerRow.createCell(0);
-		titleCell.setCellValue("Tennisschule Cyrill Keller - Junioren, Sommertraining");
+		titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining");
 		titleCell.setCellStyle(headerCellStyle);
 
 		FileOutputStream fileOut = new FileOutputStream(fileName);
-		workbook.write(fileOut);
+		this.defaultWorkbook.write(fileOut);
 		fileOut.close();
-		workbook.close();
+		this.defaultWorkbook.close();
+	}
+
+	public void writeProposal(String proposalFileName) throws IOException {
+		
+		// make lists of unsatisfied players (undesirable or too few assignments)
+		List<Player> undesirablyPlacedPlayers = new ArrayList<Player>();
+		List<Player> notEnoughSlotsPlayers = new ArrayList<Player>();
+		for (Player player : this.schedule.players.values()) {
+			if (player.undesirablePlacements.size()>0) {
+				undesirablyPlacedPlayers.add(player);
+			}
+			if (player.nSlots-player.selectedSlots.size()>0) {
+				notEnoughSlotsPlayers.add(player);
+			}
+		}
+		
+		// for unsatisfied players, find sub-optimal slots that violate certain constraints, but conform to the others
+		for (Player player : undesirablyPlacedPlayers) {
+			// try groups with free spaces - not desired slot time, but all other constraints fulfilled (age, class, maxGroupSize, category(comes autom. w/ class))
+			// start at player.maxGroupSize-1 and go down one by one (may stop at 1 or already at 2)
+			for (int currentSlotSize=player.maxGroupSize-1; currentSlotSize>=1; currentSlotSize--) {
+				slotLoop:
+				for (Slot slot : this.schedule.slots.values()) {
+					if (player.maxGroupSize < slot.players.size() + 1) {
+						continue;
+					}
+					for (Player otherPlayer : slot.players.values()) {
+						if (!player.isCompatibleWithOtherPlayer(otherPlayer)
+								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+							continue slotLoop;
+						}
+
+					}
+					// if code arrives here, can add slot as proposed slot
+					String remark = "Zeit/Tag nicht als Prio angegeben, aber alle anderen Bedingungen erfüllt. ";
+					for (Slot desiredSlot : player.desiredSlots) {
+						if (desiredSlot.weekdayNr==slot.weekdayNr) {
+							remark += "Der Tag wurde als Wunschtag angegeben, aber nicht die Zeit.";
+							break;
+						}
+					}
+					player.postProposedSlots.put(slot, remark);
+				}			
+			}
+			// try groups with desired slot time, but age violation
+			for (int currentSlotSize = player.maxGroupSize - 1; currentSlotSize >= 1; currentSlotSize--) {
+				slotLoop:
+				for (Slot slot : this.schedule.slots.values()) {
+					if (!player.isADesiredSlot(slot)) {
+						continue;
+					}
+					if (player.maxGroupSize < slot.players.size() + 1) {
+						continue;
+					}
+					for (Player otherPlayer : slot.players.values()) {
+						int ageDiff = Math.abs(player.age - otherPlayer.age);
+						int classDiff = Math.abs(player.strength - otherPlayer.strength);
+						// see that age difference constraint is loosened by two years
+						if (ageDiff > player.maxAgeDiff + 2 || ageDiff > otherPlayer.maxAgeDiff + 2
+								|| classDiff > player.maxClassDiff || classDiff > otherPlayer.maxClassDiff
+								|| player.playerNr == otherPlayer.playerNr
+								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+							continue slotLoop;
+						}
+					}
+					// if code arrives here, can add slot as proposed slot
+					String remark = "Zeit/Tag als Prio angegeben, aber Bedingungen zum Altersunterschied nicht erfüllt. ";
+					int maxAgeDiffThisSlot = 0;
+					for (Player otherPlayer : slot.players.values()) {
+						int ageDiff = Math.abs(player.age - otherPlayer.age);
+						if (ageDiff > maxAgeDiffThisSlot) {
+							maxAgeDiffThisSlot = ageDiff;
+						}
+					}
+					remark += "Maximale Altersdifferenz in dieser Gruppe wäre " + maxAgeDiffThisSlot + " Jahre.";
+					player.postProposedSlots.put(slot, remark);
+				}
+				// make sure proposed slot is not one of the already undesirable ones :)
+			}
+		}
+		for (Player player : notEnoughSlotsPlayers) {
+			// try groups with free spaces - not desired slot time, but all other constraints fulfilled (age, class, maxGroupSize, category(comes autom. w/ class))
+			// start at player.maxGroupSize-1 and go down one by one (may stop at 1 or already at 2)
+			for (int currentSlotSize=player.maxGroupSize-1; currentSlotSize>=1; currentSlotSize--) {
+				slotLoop:
+				for (Slot slot : this.schedule.slots.values()) {
+					if (player.maxGroupSize < slot.players.size() + 1) {
+						continue;
+					}
+					for (Player otherPlayer : slot.players.values()) {
+						if (!player.isCompatibleWithOtherPlayer(otherPlayer)
+								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+							continue slotLoop;
+						}
+
+					}
+					// if code arrives here, can add slot as proposed slot
+					String remark = "Zeit/Tag nicht als Prio angegeben, aber alle anderen Bedingungen erfüllt. ";
+					for (Slot desiredSlot : player.desiredSlots) {
+						if (desiredSlot.weekdayNr==slot.weekdayNr) {
+							remark += "Der Tag wurde als Wunschtag angegeben, aber nicht die Zeit.";
+							break;
+						}
+					}
+					player.postProposedSlots.put(slot, remark);
+				}			
+			}
+			// try groups with desired slot time, but age violation
+			for (int currentSlotSize = player.maxGroupSize - 1; currentSlotSize >= 1; currentSlotSize--) {
+				slotLoop:
+				for (Slot slot : this.schedule.slots.values()) {
+					if (!player.isADesiredSlot(slot)) {
+						continue;
+					}
+					if (player.maxGroupSize < slot.players.size() + 1) {
+						continue;
+					}
+					for (Player otherPlayer : slot.players.values()) {
+						int ageDiff = Math.abs(player.age - otherPlayer.age);
+						int classDiff = Math.abs(player.strength - otherPlayer.strength);
+						// see that age difference constraint is loosened by two years
+						if (ageDiff > player.maxAgeDiff + 2 || ageDiff > otherPlayer.maxAgeDiff + 2
+								|| classDiff > player.maxClassDiff || classDiff > otherPlayer.maxClassDiff
+								|| player.playerNr == otherPlayer.playerNr
+								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+							continue slotLoop;
+						}
+					}
+					// if code arrives here, can add slot as proposed slot
+					String remark = "Zeit/Tag als Prio angegeben, aber Bedingungen zum Altersunterschied nicht erfüllt. ";
+					int maxAgeDiffThisSlot = 0;
+					for (Player otherPlayer : slot.players.values()) {
+						int ageDiff = Math.abs(player.age - otherPlayer.age);
+						if (ageDiff > maxAgeDiffThisSlot) {
+							maxAgeDiffThisSlot = ageDiff;
+						}
+					}
+					remark += "Maximale Altersdifferenz in dieser Gruppe wäre " + maxAgeDiffThisSlot + " Jahre.";
+					player.postProposedSlots.put(slot, remark);
+				}
+				// make sure proposed slot is not one of the already undesirable ones :)
+			}
+		}
+		
+	// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		
+		// start with actual excel file here
+		XSSFWorkbook workbook = new XSSFWorkbook();
+		this.loadStylesAndWorkbook(workbook);
+		XSSFSheet sheet = this.defaultWorkbook.createSheet("PlayerOverview");
+		List<Row> rows = new ArrayList<Row>();
+		for (int r=0; r<=5000; r++) {
+			rows.add(sheet.createRow(r));
+		}
+		int refRowNr = 0;
+
+		List<Integer> processedPlayers = new ArrayList<Integer>();
+		Row chapterTitleRow;
+		Cell chapterTitleCell;
+		
+		int category;
+		String chapterTitle;
+		refRowNr += 4;
+		category = 0; // "notEnoughSlots";
+		chapterTitle = "Einzuteilende Spieler";
+		chapterTitleRow = rows.get(refRowNr);
+		chapterTitleCell = chapterTitleRow.createCell(0);
+		chapterTitleCell.setCellValue(chapterTitle);
+		chapterTitleCell.setCellStyle(chapterCellStyle);
+		refRowNr++;
+		for (Player player : notEnoughSlotsPlayers) {
+			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+			
+			// check if another same player profile must be placed here!!
+			// XXX ...
+			processedPlayers.add(player.playerNr);
+		}
+		refRowNr +=4;
+		category = 1; // "undesirableSlots";
+		chapterTitle = "Umzuteilende Spieler";
+		chapterTitleRow = rows.get(refRowNr);
+		chapterTitleCell = chapterTitleRow.createCell(0);
+		chapterTitleCell.setCellValue(chapterTitle);
+		chapterTitleCell.setCellStyle(chapterCellStyle);
+		refRowNr++;
+		for (Player player : undesirablyPlacedPlayers) {
+			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+			
+			// check if another same player profile must be placed here!!
+			// XXX ...
+			processedPlayers.add(player.playerNr);
+		}
+		refRowNr +=4;
+		category = 2; // "desirableSlots";
+		chapterTitle = "Zugeteilte Spieler";
+		chapterTitleRow = rows.get(refRowNr);
+		chapterTitleCell = chapterTitleRow.createCell(0);
+		chapterTitleCell.setCellValue(chapterTitle);
+		chapterTitleCell.setCellStyle(chapterCellStyle);
+		refRowNr++;
+		for (Player player : this.schedule.players.values()) {
+			if (processedPlayers.contains(player.playerNr)) {
+				continue;
+			}
+			if (player.nSlots-player.selectedSlots.size()>0) {
+				System.out.println("CAUTION: Player is left in desirable category although it does not have all slots filled! It is player with ID="+player.playerNr);
+			}
+			if (player.undesirablePlacements.size()>0) {
+				System.out.println("CAUTION: Player is left in desirable category although it has undesirable slots! It is player with ID="+player.playerNr);
+			}
+			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+			
+			// check if another same player profile must be placed here!!
+			// XXX ...
+			processedPlayers.add(player.playerNr);
+		}
+		
+		// Resize all columns to fit the content size
+		for (int i = 0; i <= 2; i++) {
+//			sheet.autoSizeColumn(i);
+			sheet.setColumnWidth(i, 8000);
+		}
+		
+		// Make header after resizing so that first column is not super wide due to long title of first headerCell
+		Font headerFont = this.defaultWorkbook.createFont();
+		headerFont.setBold(true);
+		headerFont.setFontHeightInPoints((short) 14);
+		headerFont.setColor(IndexedColors.RED.getIndex());
+		CellStyle headerCellStyle = this.defaultWorkbook.createCellStyle();
+		headerCellStyle.setFont(headerFont);
+		Row headerRow = rows.get(0);
+		Cell titleCell = headerRow.createCell(0);
+		titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining Übersicht & Vorschläge");
+		titleCell.setCellStyle(headerCellStyle);
+
+		FileOutputStream fileOut = new FileOutputStream(proposalFileName);
+		this.defaultWorkbook.write(fileOut);
+		fileOut.close();
+		this.defaultWorkbook.close();
+		
+	}
+
+	private void loadStylesAndWorkbook(XSSFWorkbook workbook) {
+
+		this.defaultWorkbook = workbook; // new HSSFWorkbook() for generating `.xls` file
+		
+		Font headerFont = defaultWorkbook.createFont();
+		headerFont.setBold(true);
+		headerFont.setFontHeightInPoints((short) 14);
+		headerFont.setColor(IndexedColors.RED.getIndex());
+		this.headerCellStyle = defaultWorkbook.createCellStyle();
+		headerCellStyle.setFont(headerFont);
+		
+		Font chapterFont = defaultWorkbook.createFont();
+		chapterFont.setBold(true);
+		chapterFont.setFontHeightInPoints((short) 18);
+		this.chapterCellStyle = defaultWorkbook.createCellStyle();
+		chapterCellStyle.setFont(chapterFont);
+		
+		this.cellStyles = new ArrayList<XSSFCellStyle>();
+		List<Color> cellColors = Arrays.asList(new Color(255,99,71), new Color(255,140,0), new Color(0,128,0));
+		for (Color color : cellColors) {
+			Font playerFont = defaultWorkbook.createFont();
+			playerFont.setBold(true);
+			XSSFCellStyle playerCellStyle = defaultWorkbook.createCellStyle();
+			playerCellStyle.setBorderTop(BorderStyle.THIN);
+			playerCellStyle.setBorderBottom(BorderStyle.THIN);
+			playerCellStyle.setFont(playerFont);
+			playerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+			XSSFColor slotCellColor = new XSSFColor(color);
+			playerCellStyle.setFillBackgroundColor(slotCellColor);
+			playerCellStyle.setFillForegroundColor(slotCellColor);
+			cellStyles.add(playerCellStyle);
+		}
+		
+		this.nSlotsXCellStyle = defaultWorkbook.createCellStyle();
+		nSlotsXCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor nSlotsXCellColor = new XSSFColor(new Color(221,235,247));
+		nSlotsXCellStyle.setFillBackgroundColor(nSlotsXCellColor);
+		nSlotsXCellStyle.setFillForegroundColor(nSlotsXCellColor);
+		
+		Font sectionTitleFont = defaultWorkbook.createFont();
+		sectionTitleFont.setBold(true);
+		this.sectionTitleStyle = defaultWorkbook.createCellStyle();
+		sectionTitleStyle.setBorderTop(BorderStyle.THIN);
+		sectionTitleStyle.setBorderBottom(BorderStyle.THIN);
+		sectionTitleStyle.setFont(sectionTitleFont);
+		
+		Font slotTitleFont = defaultWorkbook.createFont();
+		slotTitleFont.setBold(true);
+		this.slotTitleCellStyle = defaultWorkbook.createCellStyle();
+		slotTitleCellStyle.setBorderTop(BorderStyle.THIN);
+		slotTitleCellStyle.setFont(slotTitleFont);
+		slotTitleCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor slotTitleCellColor = new XSSFColor(new Color(220,220,220));
+		slotTitleCellStyle.setFillBackgroundColor(slotTitleCellColor);
+		slotTitleCellStyle.setFillForegroundColor(slotTitleCellColor);
+		
+		this.whiteCellStyle = defaultWorkbook.createCellStyle();
+		whiteCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor whiteCellColor = new XSSFColor(new Color(255,255,255));
+		whiteCellStyle.setFillBackgroundColor(whiteCellColor);
+		whiteCellStyle.setFillForegroundColor(whiteCellColor);
+		
+		this.undesiredSlotStyle = defaultWorkbook.createCellStyle();
+		undesiredSlotStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor undesiredCellColor = new XSSFColor(new Color(255,99,71));
+		undesiredSlotStyle.setFillBackgroundColor(undesiredCellColor);
+		undesiredSlotStyle.setFillForegroundColor(undesiredCellColor);
+		
+		this.rightBorderCellStyle = defaultWorkbook.createCellStyle();
+		rightBorderCellStyle.setBorderRight(BorderStyle.THICK);
+		this.rightBorderCellStyleLight = defaultWorkbook.createCellStyle();
+		rightBorderCellStyleLight.setBorderRight(BorderStyle.THIN);
+		
+		this.leftBorderCellStyle = defaultWorkbook.createCellStyle();
+		leftBorderCellStyle.setBorderLeft(BorderStyle.THICK);
+		
+	}
+
+	private int writePlayer2Table(Player player, int refRowNr, int category, String chapterTitle, List<Row> rows) {
+		
+		Cell nameCell1 = rows.get(refRowNr).createCell(0);
+		Cell nameCell2 = rows.get(refRowNr).createCell(1);
+		nameCell1.setCellValue("Name");
+		nameCell2.setCellValue(player.name);
+		nameCell1.setCellStyle(cellStyles.get(category));
+		nameCell2.setCellStyle(cellStyles.get(category));
+		refRowNr++;
+		Cell ageCell1 = rows.get(refRowNr).createCell(0);
+		Cell ageCell2 = rows.get(refRowNr).createCell(1);
+		ageCell1.setCellValue("Alter");
+		ageCell2.setCellValue(player.age);
+		refRowNr++;
+		Cell strengthCell1 = rows.get(refRowNr).createCell(0);
+		Cell strengthCell2 = rows.get(refRowNr).createCell(1);
+		strengthCell1.setCellValue("Spielstärke / Kategorie");
+		strengthCell2.setCellValue(player.strength2string());
+		refRowNr++;
+		Cell sizeCell1 = rows.get(refRowNr).createCell(0);
+		Cell sizeCell2 = rows.get(refRowNr).createCell(1);
+		sizeCell1.setCellValue("Max. Gruppengrösse");
+		sizeCell2.setCellValue(player.maxGroupSize);
+		refRowNr++;
+		Cell nSlotsCell1 = rows.get(refRowNr).createCell(0);
+		Cell nSlotsCell2 = rows.get(refRowNr).createCell(1);
+		nSlotsCell1.setCellValue("# Gewünschte Trainings");
+		nSlotsCell2.setCellValue(player.nSlots);
+		refRowNr++;
+		Cell nSlotsXCell1 = rows.get(refRowNr).createCell(0);
+		Cell nSlotsXCell2 = rows.get(refRowNr).createCell(1);
+		nSlotsXCell1.setCellValue("# Zu-/Umzuteilende Trainings");
+		if (category == 0 || category == 1) {
+			nSlotsXCell2.setCellValue(player.nSlots - player.selectedSlots.size() + player.undesirablePlacements.size());
+		}
+		if (category == 2) {
+			nSlotsXCell2.setCellValue(0);
+		}
+		nSlotsXCell1.setCellStyle(nSlotsXCellStyle);
+		nSlotsXCell2.setCellStyle(nSlotsXCellStyle);			
+		refRowNr++;
+
+		Cell selected1 = rows.get(refRowNr).createCell(0);
+		Cell selected2 = rows.get(refRowNr).createCell(1);
+		selected1.setCellValue("Zugeteilte Trainings");
+		selected2.setCellValue("Bemerkungen");
+		selected1.setCellStyle(sectionTitleStyle);
+		selected2.setCellStyle(sectionTitleStyle);
+		refRowNr++;
+		
+		for (Slot slot : player.selectedSlots) {
+			String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.players.size();
+			String remark = "";
+			if (category==1) {	// undesired player category
+				remark = "Unerwünschter Slot";
+			}
+			else {
+				remark = "OK";
+			}
+			Cell slotCell = rows.get(refRowNr).createCell(0);
+			Cell remarkCell = rows.get(refRowNr).createCell(1);
+			slotCell.setCellValue(training);
+			remarkCell.setCellValue(remark);
+			refRowNr++;
+		}
+		
+		Cell desired1 = rows.get(refRowNr).createCell(0);
+		Cell desired2 = rows.get(refRowNr).createCell(1);
+		desired1.setCellValue("Wunschtermine");
+		desired1.setCellStyle(sectionTitleStyle);
+		desired2.setCellStyle(sectionTitleStyle);
+		refRowNr++;
+		
+		for (Slot slot : player.desiredSlots) {
+			String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h";
+			String remark = "-";
+			Cell slotCell = rows.get(refRowNr).createCell(0);
+			Cell remarkCell = rows.get(refRowNr).createCell(1);
+			slotCell.setCellValue(training);
+			remarkCell.setCellValue(remark);
+			refRowNr++;
+		}
+		
+		if (category==0 || category==1) {
+			Cell alternative1 = rows.get(refRowNr).createCell(0);
+			Cell alternative2 = rows.get(refRowNr).createCell(1);
+			if (category==0) {
+				alternative1.setCellValue("Vorschläge");				
+			}
+			if (category==1) {
+				alternative1.setCellValue("Alternative Vorschläge");
+			}
+			alternative2.setCellValue("Bemerkungen");
+			alternative1.setCellStyle(sectionTitleStyle);
+			alternative2.setCellStyle(sectionTitleStyle);
+			refRowNr++;
+			
+			for (Entry<Slot,String> entry : player.postProposedSlots.entrySet()) {
+				Slot slot = entry.getKey();
+				String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.players.size();
+				String remark = entry.getValue();
+				Cell slotCell = rows.get(refRowNr).createCell(0);
+				Cell remarkCell = rows.get(refRowNr).createCell(1);
+				slotCell.setCellValue(training);
+				remarkCell.setCellValue(remark);
+				refRowNr++;
+			}			
+		}
+		
+		return refRowNr;
 	}
 	
 }

@@ -1,8 +1,12 @@
 package tcDietlikon;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class Player {
 	
@@ -24,6 +28,7 @@ public class Player {
 	List<Integer> linkablePlayers = new ArrayList<Integer>();
 	List<Slot> undesirablePlacements = new ArrayList<Slot>();
 	List<Integer> samePersonPlayerProfiles = new ArrayList<Integer>();
+	Map<Slot,String> postProposedSlots = new HashMap<Slot,String>();
 	
 	public Player clone() {
 		Player copy = new Player();
@@ -54,6 +59,9 @@ public class Player {
 		}
 		for (Slot undesirableSlot : this.undesirablePlacements) {
 			copy.undesirablePlacements.add(undesirableSlot);
+		}
+		for (Entry<Slot,String> entry : this.postProposedSlots.entrySet()) {
+			copy.postProposedSlots.put(entry.getKey(), entry.getValue());
 		}
 		return copy;
 	}
@@ -187,6 +195,30 @@ public class Player {
 			}
 		}
 		return false;
+	}
+
+	public String strength2string() {
+		if (this.strength==20) {
+			return "TC";					
+		}
+		else if (this.strength==21) {
+			return "G";					
+		}
+		else if (this.strength==22) {
+			return "O";					
+		}
+		else if (this.strength==23) {
+			return "R";					
+		}
+		else if (1 <= this.strength && this.strength <= 9){
+			return "R"+this.strength;
+		}
+		else if (-3 <= this.strength && this.strength <= 0) {
+			return "N"+(4+this.strength);
+		}
+		else {
+			return "??";
+		}
 	}
 	
 }

@@ -269,6 +269,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -323,6 +324,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -377,6 +379,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -465,6 +468,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -490,6 +494,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -742,6 +747,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -780,6 +786,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -901,6 +908,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -917,6 +925,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -980,6 +989,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -1079,6 +1089,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -1093,6 +1104,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -1128,6 +1140,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -1257,6 +1270,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -1401,6 +1415,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -1522,6 +1537,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                       <entry>
@@ -1626,6 +1642,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                       <entry>
@@ -1920,6 +1937,7 @@
                                     </linkablePlayers>
                                     <undesirablePlacements/>
                                     <samePersonPlayerProfiles/>
+                                    <postProposedSlots/>
                                   </tcDietlikon.Player>
                                 </entry>
                                 <entry>
@@ -2119,6 +2137,7 @@
                                               </linkablePlayers>
                                               <undesirablePlacements/>
                                               <samePersonPlayerProfiles/>
+                                              <postProposedSlots/>
                                             </tcDietlikon.Player>
                                           </entry>
                                           <entry>
@@ -2448,6 +2467,7 @@
                                                                   </linkablePlayers>
                                                                   <undesirablePlacements/>
                                                                   <samePersonPlayerProfiles/>
+                                                                  <postProposedSlots/>
                                                                 </tcDietlikon.Player>
                                                               </entry>
                                                               <entry>
@@ -2524,6 +2544,7 @@
                                                                   </linkablePlayers>
                                                                   <undesirablePlacements/>
                                                                   <samePersonPlayerProfiles/>
+                                                                  <postProposedSlots/>
                                                                 </tcDietlikon.Player>
                                                               </entry>
                                                               <entry>
@@ -2620,6 +2641,7 @@
                                                                   </linkablePlayers>
                                                                   <undesirablePlacements/>
                                                                   <samePersonPlayerProfiles/>
+                                                                  <postProposedSlots/>
                                                                 </tcDietlikon.Player>
                                                               </entry>
                                                             </players>
@@ -2649,6 +2671,7 @@
                                                         </linkablePlayers>
                                                         <undesirablePlacements/>
                                                         <samePersonPlayerProfiles/>
+                                                        <postProposedSlots/>
                                                       </tcDietlikon.Player>
                                                     </entry>
                                                     <entry>
@@ -2689,6 +2712,7 @@
                                                         </linkablePlayers>
                                                         <undesirablePlacements/>
                                                         <samePersonPlayerProfiles/>
+                                                        <postProposedSlots/>
                                                       </tcDietlikon.Player>
                                                     </entry>
                                                     <entry>
@@ -2916,6 +2940,7 @@
                                                                   </linkablePlayers>
                                                                   <undesirablePlacements/>
                                                                   <samePersonPlayerProfiles/>
+                                                                  <postProposedSlots/>
                                                                 </tcDietlikon.Player>
                                                               </entry>
                                                               <entry>
@@ -3092,6 +3117,7 @@
                                                                             </linkablePlayers>
                                                                             <undesirablePlacements/>
                                                                             <samePersonPlayerProfiles/>
+                                                                            <postProposedSlots/>
                                                                           </tcDietlikon.Player>
                                                                         </entry>
                                                                         <entry>
@@ -3249,6 +3275,7 @@
                                                                                       </linkablePlayers>
                                                                                       <undesirablePlacements/>
                                                                                       <samePersonPlayerProfiles/>
+                                                                                      <postProposedSlots/>
                                                                                     </tcDietlikon.Player>
                                                                                   </entry>
                                                                                   <entry>
@@ -3385,6 +3412,7 @@
                                                                                       </linkablePlayers>
                                                                                       <undesirablePlacements/>
                                                                                       <samePersonPlayerProfiles/>
+                                                                                      <postProposedSlots/>
                                                                                     </tcDietlikon.Player>
                                                                                   </entry>
                                                                                   <entry>
@@ -3618,6 +3646,7 @@
                                                                                                 </linkablePlayers>
                                                                                                 <undesirablePlacements/>
                                                                                                 <samePersonPlayerProfiles/>
+                                                                                                <postProposedSlots/>
                                                                                               </tcDietlikon.Player>
                                                                                             </entry>
                                                                                             <entry>
@@ -3676,6 +3705,7 @@
                                                                                                 </linkablePlayers>
                                                                                                 <undesirablePlacements/>
                                                                                                 <samePersonPlayerProfiles/>
+                                                                                                <postProposedSlots/>
                                                                                               </tcDietlikon.Player>
                                                                                             </entry>
                                                                                             <entry>
@@ -4075,6 +4105,7 @@
                                                                                                           </linkablePlayers>
                                                                                                           <undesirablePlacements/>
                                                                                                           <samePersonPlayerProfiles/>
+                                                                                                          <postProposedSlots/>
                                                                                                         </tcDietlikon.Player>
                                                                                                       </entry>
                                                                                                       <entry>
@@ -4214,6 +4245,7 @@
                                                                                                           </linkablePlayers>
                                                                                                           <undesirablePlacements/>
                                                                                                           <samePersonPlayerProfiles/>
+                                                                                                          <postProposedSlots/>
                                                                                                         </tcDietlikon.Player>
                                                                                                       </entry>
                                                                                                       <entry>
@@ -4288,6 +4320,7 @@
                                                                                                           </linkablePlayers>
                                                                                                           <undesirablePlacements/>
                                                                                                           <samePersonPlayerProfiles/>
+                                                                                                          <postProposedSlots/>
                                                                                                         </tcDietlikon.Player>
                                                                                                       </entry>
                                                                                                     </players>
@@ -4579,6 +4612,7 @@
                                                                                                           <samePersonPlayerProfiles>
                                                                                                             <int>142</int>
                                                                                                           </samePersonPlayerProfiles>
+                                                                                                          <postProposedSlots/>
                                                                                                         </tcDietlikon.Player>
                                                                                                       </entry>
                                                                                                       <entry>
@@ -4678,6 +4712,7 @@
                                                                                                           </linkablePlayers>
                                                                                                           <undesirablePlacements/>
                                                                                                           <samePersonPlayerProfiles/>
+                                                                                                          <postProposedSlots/>
                                                                                                         </tcDietlikon.Player>
                                                                                                       </entry>
                                                                                                     </players>
@@ -4716,6 +4751,7 @@
                                                                                                 </linkablePlayers>
                                                                                                 <undesirablePlacements/>
                                                                                                 <samePersonPlayerProfiles/>
+                                                                                                <postProposedSlots/>
                                                                                               </tcDietlikon.Player>
                                                                                             </entry>
                                                                                           </players>
@@ -4758,6 +4794,7 @@
                                                                                       </linkablePlayers>
                                                                                       <undesirablePlacements/>
                                                                                       <samePersonPlayerProfiles/>
+                                                                                      <postProposedSlots/>
                                                                                     </tcDietlikon.Player>
                                                                                   </entry>
                                                                                   <entry>
@@ -4801,6 +4838,7 @@
                                                                             </linkablePlayers>
                                                                             <undesirablePlacements/>
                                                                             <samePersonPlayerProfiles/>
+                                                                            <postProposedSlots/>
                                                                           </tcDietlikon.Player>
                                                                         </entry>
                                                                         <entry>
@@ -4918,6 +4956,7 @@
                                                                             </linkablePlayers>
                                                                             <undesirablePlacements/>
                                                                             <samePersonPlayerProfiles/>
+                                                                            <postProposedSlots/>
                                                                           </tcDietlikon.Player>
                                                                         </entry>
                                                                       </players>
@@ -4960,6 +4999,7 @@
                                                                   </linkablePlayers>
                                                                   <undesirablePlacements/>
                                                                   <samePersonPlayerProfiles/>
+                                                                  <postProposedSlots/>
                                                                 </tcDietlikon.Player>
                                                               </entry>
                                                               <entry>
@@ -5137,6 +5177,7 @@
                                                                   </linkablePlayers>
                                                                   <undesirablePlacements/>
                                                                   <samePersonPlayerProfiles/>
+                                                                  <postProposedSlots/>
                                                                 </tcDietlikon.Player>
                                                               </entry>
                                                               <entry>
@@ -5186,6 +5227,7 @@
                                                         </linkablePlayers>
                                                         <undesirablePlacements/>
                                                         <samePersonPlayerProfiles/>
+                                                        <postProposedSlots/>
                                                       </tcDietlikon.Player>
                                                     </entry>
                                                   </players>
@@ -5387,6 +5429,7 @@
                                                         </linkablePlayers>
                                                         <undesirablePlacements/>
                                                         <samePersonPlayerProfiles/>
+                                                        <postProposedSlots/>
                                                       </tcDietlikon.Player>
                                                     </entry>
                                                     <entry>
@@ -5523,6 +5566,7 @@
                                                         </linkablePlayers>
                                                         <undesirablePlacements/>
                                                         <samePersonPlayerProfiles/>
+                                                        <postProposedSlots/>
                                                       </tcDietlikon.Player>
                                                     </entry>
                                                     <entry>
@@ -5573,6 +5617,7 @@
                                                         <samePersonPlayerProfiles>
                                                           <int>191</int>
                                                         </samePersonPlayerProfiles>
+                                                        <postProposedSlots/>
                                                       </tcDietlikon.Player>
                                                     </entry>
                                                   </players>
@@ -5627,6 +5672,7 @@
                                               </linkablePlayers>
                                               <undesirablePlacements/>
                                               <samePersonPlayerProfiles/>
+                                              <postProposedSlots/>
                                             </tcDietlikon.Player>
                                           </entry>
                                         </players>
@@ -5656,6 +5702,7 @@
                                     </linkablePlayers>
                                     <undesirablePlacements/>
                                     <samePersonPlayerProfiles/>
+                                    <postProposedSlots/>
                                   </tcDietlikon.Player>
                                 </entry>
                                 <entry>
@@ -5702,6 +5749,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                     </players>
@@ -5735,6 +5783,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -5874,6 +5923,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -5908,6 +5958,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -5984,6 +6035,7 @@
       <samePersonPlayerProfiles>
         <int>142</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6033,6 +6085,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6079,6 +6132,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6150,6 +6204,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6238,6 +6293,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6308,6 +6364,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6368,6 +6425,7 @@
                 <linkablePlayers/>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -6379,6 +6437,7 @@
       <linkablePlayers/>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6419,6 +6478,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6486,6 +6546,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -6813,6 +6874,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -6895,6 +6957,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -6993,6 +7056,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -7048,6 +7112,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -7102,6 +7167,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -7290,6 +7356,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -7405,6 +7472,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -7518,6 +7586,7 @@
                 <samePersonPlayerProfiles>
                   <int>159</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -7697,6 +7766,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -7737,6 +7807,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -7787,6 +7858,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -7866,6 +7938,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -7983,6 +8056,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -8118,6 +8192,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -8137,6 +8212,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -8200,6 +8276,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -8430,6 +8507,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                     </players>
@@ -8457,6 +8535,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -8615,6 +8694,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -8662,6 +8742,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -8691,6 +8772,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -8815,6 +8897,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -8857,6 +8940,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -9005,6 +9089,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                       <entry>
@@ -9098,6 +9183,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                       <entry>
@@ -9198,6 +9284,7 @@
                           </linkablePlayers>
                           <undesirablePlacements/>
                           <samePersonPlayerProfiles/>
+                          <postProposedSlots/>
                         </tcDietlikon.Player>
                       </entry>
                     </players>
@@ -9225,6 +9312,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -9325,6 +9413,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -9345,6 +9434,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9378,6 +9468,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9427,6 +9518,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9481,6 +9573,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9527,6 +9620,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9558,6 +9652,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9626,6 +9721,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -9679,6 +9775,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -9732,6 +9829,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -9851,6 +9949,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -9870,6 +9969,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9905,6 +10005,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9940,6 +10041,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -9987,6 +10089,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10036,6 +10139,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10075,6 +10179,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10149,6 +10254,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10198,6 +10304,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10269,6 +10376,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10333,6 +10441,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10395,6 +10504,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10462,6 +10572,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10524,6 +10635,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10585,6 +10697,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10666,6 +10779,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10739,6 +10853,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10804,6 +10919,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -10866,6 +10982,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -10879,6 +10996,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11209,6 +11327,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -11249,6 +11368,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -11289,6 +11409,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -11345,6 +11466,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -11370,6 +11492,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11574,6 +11697,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -11626,6 +11750,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -11654,6 +11779,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11700,6 +11826,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11731,6 +11858,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11762,6 +11890,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11811,6 +11940,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11865,6 +11995,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -11966,6 +12097,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -11985,6 +12117,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12037,6 +12170,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12092,6 +12226,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12148,6 +12283,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12179,6 +12315,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12286,6 +12423,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -12300,6 +12438,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12388,6 +12527,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -12424,6 +12564,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -12500,6 +12641,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -12554,6 +12696,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -12574,6 +12717,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12614,6 +12758,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12650,6 +12795,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -12782,6 +12928,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -12855,6 +13002,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -12894,6 +13042,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -12960,6 +13109,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -12982,6 +13132,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13021,6 +13172,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13063,6 +13215,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13098,6 +13251,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13142,6 +13296,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13171,6 +13326,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13208,6 +13364,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13275,6 +13432,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13308,6 +13466,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13389,6 +13548,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -13430,6 +13590,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -13481,6 +13642,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -13528,6 +13690,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -13554,6 +13717,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13635,6 +13799,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13677,6 +13842,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13750,6 +13916,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13809,6 +13976,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13880,6 +14048,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -13943,6 +14112,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14053,6 +14223,7 @@
                 <samePersonPlayerProfiles>
                   <int>157</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14111,6 +14282,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14154,6 +14326,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14214,6 +14387,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -14240,6 +14414,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14278,6 +14453,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14316,6 +14492,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14449,6 +14626,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14499,6 +14677,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14590,6 +14769,7 @@
                 <samePersonPlayerProfiles>
                   <int>140</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14680,6 +14860,7 @@
                 <samePersonPlayerProfiles>
                   <int>107</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -14714,6 +14895,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14752,6 +14934,7 @@
       <samePersonPlayerProfiles>
         <int>157</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14792,6 +14975,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14828,6 +15012,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -14892,6 +15077,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -14931,6 +15117,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15061,6 +15248,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15100,6 +15288,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -15115,6 +15304,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15145,6 +15335,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15185,6 +15376,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15215,6 +15407,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15261,6 +15454,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15305,6 +15499,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15371,6 +15566,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15412,6 +15608,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15453,6 +15650,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15494,6 +15692,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -15511,6 +15710,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15654,6 +15854,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15703,6 +15904,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -15747,6 +15949,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -15770,6 +15973,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15802,6 +16006,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15834,6 +16039,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15866,6 +16072,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15897,6 +16104,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -15928,6 +16136,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16136,6 +16345,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -16196,6 +16406,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -16232,6 +16443,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16272,6 +16484,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16368,6 +16581,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -16382,6 +16596,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16444,6 +16659,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -16457,6 +16673,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16560,6 +16777,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -16600,6 +16818,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -16640,6 +16859,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -16680,6 +16900,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -16720,6 +16941,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -16738,6 +16960,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16769,6 +16992,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16800,6 +17024,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16831,6 +17056,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16862,6 +17088,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16921,6 +17148,7 @@
       <samePersonPlayerProfiles>
         <int>159</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -16976,6 +17204,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17080,6 +17309,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -17130,6 +17360,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -17180,6 +17411,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -17215,6 +17447,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -17233,6 +17466,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17287,6 +17521,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17330,6 +17565,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17384,6 +17620,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17432,6 +17669,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17464,6 +17702,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17496,6 +17735,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17528,6 +17768,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17637,6 +17878,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -17664,6 +17906,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17700,6 +17943,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17736,6 +17980,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17771,6 +18016,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17814,6 +18060,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -17889,6 +18136,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -17904,6 +18152,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18007,6 +18256,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18028,6 +18278,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18129,6 +18380,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18148,6 +18400,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18235,6 +18488,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18251,6 +18505,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18301,6 +18556,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18364,6 +18620,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18378,6 +18635,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18454,6 +18712,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -18506,6 +18765,7 @@
                 <samePersonPlayerProfiles>
                   <int>130</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -18556,6 +18816,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -18606,6 +18867,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18622,6 +18884,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18656,6 +18919,7 @@
       <samePersonPlayerProfiles>
         <int>130</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18720,6 +18984,7 @@
                 <samePersonPlayerProfiles>
                   <int>129</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18735,6 +19000,7 @@
       <samePersonPlayerProfiles>
         <int>129</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18767,6 +19033,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18799,6 +19066,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18875,6 +19143,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18891,6 +19160,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -18958,6 +19228,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -18976,6 +19247,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19043,6 +19315,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -19061,6 +19334,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19101,6 +19375,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19177,6 +19452,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19279,6 +19555,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -19296,6 +19573,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19358,6 +19636,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -19371,6 +19650,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19446,6 +19726,7 @@
                 <samePersonPlayerProfiles>
                   <int>141</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -19461,6 +19742,7 @@
       <samePersonPlayerProfiles>
         <int>141</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19516,6 +19798,7 @@
       <samePersonPlayerProfiles>
         <int>140</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19749,6 +20032,7 @@
       <samePersonPlayerProfiles>
         <int>6</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19829,6 +20113,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -19849,6 +20134,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19891,6 +20177,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -19931,6 +20218,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20043,6 +20331,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -20059,6 +20348,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20138,6 +20428,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -20157,6 +20448,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20209,6 +20501,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20286,6 +20579,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -20337,6 +20631,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -20388,6 +20683,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -20405,6 +20701,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20438,6 +20735,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20471,6 +20769,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20539,6 +20838,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -20582,6 +20882,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -20625,6 +20926,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -20668,6 +20970,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -20687,6 +20990,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20721,6 +21025,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20755,6 +21060,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20789,6 +21095,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20851,6 +21158,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -20864,6 +21172,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20924,6 +21233,7 @@
       <samePersonPlayerProfiles>
         <int>82</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -20966,6 +21276,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21020,6 +21331,7 @@
       <samePersonPlayerProfiles>
         <int>107</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21073,6 +21385,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21131,6 +21444,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21189,6 +21503,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21265,6 +21580,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -21281,6 +21597,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21357,6 +21674,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -21373,6 +21691,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21505,6 +21824,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21594,6 +21914,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -21612,6 +21933,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21672,6 +21994,7 @@
                 <linkablePlayers/>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -21683,6 +22006,7 @@
       <linkablePlayers/>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21718,6 +22042,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21753,6 +22078,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -21822,6 +22148,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -21866,6 +22193,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -21910,6 +22238,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -21954,6 +22283,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -21974,6 +22304,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22009,6 +22340,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22044,6 +22376,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22079,6 +22412,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22189,6 +22523,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -22237,6 +22572,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -22303,6 +22639,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -22335,6 +22672,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22383,6 +22721,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22431,6 +22770,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22486,6 +22826,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22569,6 +22910,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -22627,6 +22969,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -22685,6 +23028,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -22708,6 +23052,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22748,6 +23093,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22788,6 +23134,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -22867,6 +23214,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -22923,6 +23271,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -22976,6 +23325,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -23029,6 +23379,7 @@
                 <samePersonPlayerProfiles>
                   <int>185</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -23048,6 +23399,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23086,6 +23438,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23121,6 +23474,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23156,6 +23510,7 @@
       <samePersonPlayerProfiles>
         <int>185</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23196,6 +23551,7 @@
       <samePersonPlayerProfiles>
         <int>184</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23266,6 +23622,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -23287,6 +23644,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23403,6 +23761,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -23491,6 +23850,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -23563,6 +23923,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -23597,6 +23958,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23649,6 +24011,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23685,6 +24048,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23722,6 +24086,7 @@
       <samePersonPlayerProfiles>
         <int>191</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23797,6 +24162,7 @@
                 <samePersonPlayerProfiles>
                   <int>190</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -23812,6 +24178,7 @@
       <samePersonPlayerProfiles>
         <int>190</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -23882,6 +24249,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -23927,6 +24295,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -23972,6 +24341,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
             <entry>
@@ -24015,6 +24385,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -24036,6 +24407,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24072,6 +24444,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24108,6 +24481,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24142,6 +24516,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24213,6 +24588,7 @@
                 <linkablePlayers/>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -24224,6 +24600,7 @@
       <linkablePlayers/>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24287,6 +24664,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -24301,6 +24679,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24375,6 +24754,7 @@
                 </linkablePlayers>
                 <undesirablePlacements/>
                 <samePersonPlayerProfiles/>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -24389,6 +24769,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24424,6 +24805,7 @@
       </linkablePlayers>
       <undesirablePlacements/>
       <samePersonPlayerProfiles/>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24486,6 +24868,7 @@
                 <samePersonPlayerProfiles>
                   <int>201</int>
                 </samePersonPlayerProfiles>
+                <postProposedSlots/>
               </tcDietlikon.Player>
             </entry>
           </players>
@@ -24499,6 +24882,7 @@
       <samePersonPlayerProfiles>
         <int>201</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
   <entry>
@@ -24534,6 +24918,7 @@
       <samePersonPlayerProfiles>
         <int>200</int>
       </samePersonPlayerProfiles>
+      <postProposedSlots/>
     </tcDietlikon.Player>
   </entry>
 </map>
