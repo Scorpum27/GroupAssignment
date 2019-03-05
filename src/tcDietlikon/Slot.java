@@ -56,7 +56,7 @@ public class Slot {
 	}
 	
 	// usually to check if player could be added to a group if it were pushed there (no size constraint bc during push procedure another palyer would be kicked out)
-	public Boolean groupVirtuallyAcceptsPlayer(Player player) {
+	public Boolean groupVirtuallyAcceptsPlayer(Player player, Schedule schedule) {
 		if (this.isFrozen) {
 			return false;
 		}
@@ -69,10 +69,8 @@ public class Slot {
 		if (!this.category.equals("empty") && !player.category.equals(this.category)) {
 			return false;
 		}
-		for (Slot slot : player.selectedSlots) {
-			if (this.weekdayNr == slot.weekdayNr) {
-				return false;
-			}
+		if (player.hasSlotOnSameDay(this, schedule)) {
+			return false;
 		}
 		for (Player otherPlayer : this.players.values()) {
 			int ageDiff = Math.abs(player.age-otherPlayer.age);
@@ -94,7 +92,7 @@ public class Slot {
 		this.players.put(playerNr, player);
 	}
 	
-	public Boolean acceptsPlayer(Player player, int strategy, boolean allowOverfullGroups) {
+	public Boolean acceptsPlayer(Player player, int strategy, boolean allowOverfullGroups, Schedule schedule) {
 		// loop to ensure that a player is not assigned two slots on the same weekday if he wants to train more than once
 		// this is always a condition irrespective of the strategy
 		if (this.players.containsKey(player.playerNr)) {
@@ -103,10 +101,8 @@ public class Slot {
 		if (this.isFrozen) {
 			return false;
 		}
-		for (Slot slot : player.selectedSlots) {
-			if (this.weekdayNr == slot.weekdayNr) {
-				return false;
-			}
+		if (player.hasSlotOnSameDay(this, schedule)) {
+			return false;
 		}
 		// check that group is not too large for player's maxGroupSize and the other players' maxGroupSize
 		// +1 because considering case where another player is to be added
@@ -610,7 +606,7 @@ public class Slot {
 		return false;
 	}
 
-	public boolean fillWithPlayers(int fullnessGoalPlacementRound, int maxGroupSizePlacementRound, Map<Integer, Player> players) {
+	public boolean fillWithPlayers(int fullnessGoalPlacementRound, int maxGroupSizePlacementRound, Map<Integer, Player> players, Schedule schedule) {
 //		System.out.println("Trying to fill slot="+this.slotId);
 		
 		// find all players with the maxGroupSize as specified by loop in calling method (--> these may now be combined in filling in the slot)
@@ -618,7 +614,7 @@ public class Slot {
 		for (Player player : this.desirablePlayers) {
 //			System.out.println("player.maxGroupSize = "+player.maxGroupSize);
 //			System.out.println("player.nSlots-player.selectedSlots.size() = "+(player.nSlots-player.selectedSlots.size()));
-			if (player.maxGroupSize==maxGroupSizePlacementRound && player.selectedSlots.size()<player.nSlots && !player.hasSlotOnSameDay(this)) {
+			if (player.maxGroupSize==maxGroupSizePlacementRound && player.selectedSlots.size()<player.nSlots && !player.hasSlotOnSameDay(this, schedule)) {
 				feasiblePlayers.add(player);
 			}
 		}
@@ -645,7 +641,125 @@ public class Slot {
 			return false;			
 		}
 	}
-	
 
+	public boolean mergerFeasible(Slot otherSlot1, Slot otherSlot2, Schedule schedule) {
+		// check that a player is not featured in both groups --> this would result in the player losing one assigned slot, which is not desired
+		for (int playerNr1 : otherSlot1.players.keySet()) {
+			for (int playerNr2 : otherSlot2.players.keySet()) {
+				if (playerNr1==playerNr2) {
+					return false;
+				}
+			}
+		}
+		
+		// put all players into a list that would be merged
+		List<Player> allPlayers = new ArrayList<Player>();
+		for (Player player : otherSlot1.players.values()) {
+			// avoid double training on same day
+			if (player.canMoveThisSlot2OtherSlot(otherSlot1, this, schedule)) {
+				allPlayers.add(player);				
+			}
+			else {
+				return false;
+			}
+		}
+		for (Player player : otherSlot2.players.values()) {
+			// avoid double training on same day
+			if (player.canMoveThisSlot2OtherSlot(otherSlot2, this, schedule)) {
+				allPlayers.add(player);				
+			}
+			else {
+				return false;
+			}
+		}
+		
+		// check compatibility of all players
+		for (Player player : allPlayers) {
+			// desired slot day/time
+			if (!player.isADesiredSlot(this)) {
+				return false;
+			}
+			for (Player otherPlayer : allPlayers) {
+				if (player.equals(otherPlayer)) {
+					continue;
+				}
+				// class & age
+				if (!player.isCompatibleWithOtherPlayer(otherPlayer)) {
+					return false;
+				}
+				// size
+				// if maxG4 player, allow also G5 groups (see the -1 at the end allowing a G5 for player.maxGroupSize=4)
+				if (player.maxGroupSize==4 && player.maxGroupSize< allPlayers.size()-1) {
+					return false;
+				}
+				else if (player.maxGroupSize!=4 && player.maxGroupSize< allPlayers.size()) {
+					return false;
+				}
+				// category
+				if (!player.category.equals(otherPlayer.category)) {
+					return false;
+				}
+			}
+		}
+		// if code arrives here, all players are compatible within that specific slot
+		return true;
+	}
+	
+	public boolean mergerFeasible(Player player1, Slot otherSlot2, Schedule schedule) {
+		// check that a player is not featured in both groups --> this would result in the player losing one assigned slot, which is not desired
+		for (int playerNr2 : otherSlot2.players.keySet()) {
+			if (player1.playerNr==playerNr2) {
+				return false;
+			}
+		}
+		
+		// put all players into a list that would be merged
+		List<Player> allPlayers = new ArrayList<Player>();
+		// avoid double training on same day
+		if (player1.hasSlotOnSameDay(this, schedule)) {
+			return false;
+		}
+		allPlayers.add(player1);
+		for (Player player : otherSlot2.players.values()) {
+			// avoid double training on same day
+			if (player.canMoveThisSlot2OtherSlot(otherSlot2, this, schedule)) {
+				allPlayers.add(player);				
+			}
+			else {
+				return false;
+			}
+		}
+		
+		// check compatibility of all players
+		for (Player player : allPlayers) {
+			// desired slot day/time
+			if (!player.isADesiredSlot(this)) {
+				return false;
+			}
+			for (Player otherPlayer : allPlayers) {
+				if (player.equals(otherPlayer)) {
+					continue;
+				}
+				// class & age
+				if (!player.isCompatibleWithOtherPlayer(otherPlayer)) {
+					return false;
+				}
+				// size
+				// if maxG4 player, allow also G5 groups (see the -1 at the end allowing a G5 for player.maxGroupSize=4)
+				if (player.maxGroupSize==4 && player.maxGroupSize< allPlayers.size()-1) {
+					return false;
+				}
+				else if (player.maxGroupSize!=4 && player.maxGroupSize< allPlayers.size()) {
+					return false;
+				}
+				// category
+				if (!player.category.equals(otherPlayer.category)) {
+					return false;
+				}
+			}
+		}
+		// if code arrives here, all players are compatible within that specific slot
+		return true;
+	}
 	
 }

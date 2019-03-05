@@ -395,6 +395,14 @@ public class PlayerUtils {
         		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize, category);
         		newPlayer.maxAgeDiff = maxAgeDiff;
         		newPlayer.maxClassDiff = maxClassDiff;
+        		// it can be that the same person is featured twice in the initial player list as they register e.g. for private and group lessons
+        		// --> mark the same person profiles so that one profile knows when the other one plays and does not make double day assignments
+        		for (Player loadedPlayer : players.values()) {
+        			if (newPlayer.name.equals(loadedPlayer.name)) {
+        				loadedPlayer.samePersonPlayerProfiles.add(playerNr);
+        				newPlayer.samePersonPlayerProfiles.add(loadedPlayer.playerNr);
+        			}
+        		}
         		players.put(playerCounter, newPlayer);
         		
         		for (int slotRowNr=r+1; slotRowNr<= r+6; slotRowNr++) {

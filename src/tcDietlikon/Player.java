@@ -23,6 +23,7 @@ public class Player {
 	List<Slot> selectedSlots = new ArrayList<Slot>();
 	List<Integer> linkablePlayers = new ArrayList<Integer>();
 	List<Slot> undesirablePlacements = new ArrayList<Slot>();
+	List<Integer> samePersonPlayerProfiles = new ArrayList<Integer>();
 	
 	public Player clone() {
 		Player copy = new Player();
@@ -41,6 +42,9 @@ public class Player {
 		copy.linkability = this.linkability;
 		for (Integer linkablePlayerNr : this.linkablePlayers) {
 			copy.linkablePlayers.add(linkablePlayerNr);
+		}
+		for (Integer samePersonNr : this.samePersonPlayerProfiles) {
+			copy.samePersonPlayerProfiles.add(samePersonNr);
 		}
 		for (Slot desiredSlot : this.desiredSlots) {
 			copy.desiredSlots.add(desiredSlot);
@@ -123,7 +127,7 @@ public class Player {
 	// method to check if player can be moved from thisSlot to otherSlot
 	// otherslot cannot be on a day, where player already has a training slot
 	// but otherslot can be on the day, where thisSlot is dropped bc now the player is free on this day
-	public boolean canMoveThisSlot2OtherSlot(Slot thisSlot, Slot otherslot) {
+	public boolean canMoveThisSlot2OtherSlot(Slot thisSlot, Slot otherslot, Schedule schedule) {
 		for (Slot selectedSlot : this.selectedSlots) {
 			// do not have to check slots on the day that we are dropping the training on bc it is free again
 			if (selectedSlot.weekdayNr==thisSlot.weekdayNr) {
@@ -133,6 +137,21 @@ public class Player {
 			// if it does, player cannot be moved to that day a second time
 			if (selectedSlot.weekdayNr == otherslot.weekdayNr) {
 				return false;
+			}
+		}
+		// repeat exactly the same story for all same player profiles and their slots
+		for (int playerNr : this.samePersonPlayerProfiles) {
+			Player samePlayer = schedule.players.get(playerNr);
+			for (Slot selectedSlot : samePlayer.selectedSlots) {
+				// do not have to check slots on the day that we are dropping the training on bc it is free again
+				if (selectedSlot.weekdayNr==thisSlot.weekdayNr) {
+					continue;
+				}
+				// check if otherslot does not interfere with selected training slots on another day
+				// if it does, player cannot be moved to that day a second time
+				if (selectedSlot.weekdayNr == otherslot.weekdayNr) {
+					return false;
+				}
 			}
 		}
 		return true;
@@ -145,18 +164,26 @@ public class Player {
 		}
 		int ageDiff = Math.abs(this.age - otherPlayer.age);
 		int classDiff = Math.abs(this.strength - otherPlayer.strength);
-		if (ageDiff > this.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff || 				// Default > 3.0
+		if (ageDiff > this.maxAgeDiff || ageDiff > otherPlayer.maxAgeDiff ||
 				classDiff > this.maxClassDiff || classDiff > otherPlayer.maxClassDiff) { 	// Default > 2.0
 			return false;
-		} else {
-			return true;
 		}
+		return true;
 	}
 
-	public boolean hasSlotOnSameDay(Slot slot) {
+	public boolean hasSlotOnSameDay(Slot slot, Schedule schedule) {
 		for (Slot selectedSlot : this.selectedSlots) {
 			if (slot.weekdayNr==selectedSlot.weekdayNr) {
 				return true;
+			}
+		}
+		// do the same thing for other player profiles of the same person
+		for (int playerNr : this.samePersonPlayerProfiles) {
+			Player samePlayer = schedule.players.get(playerNr);
+			for (Slot selectedSlot : samePlayer.selectedSlots) {
+				if (slot.weekdayNr==selectedSlot.weekdayNr) {
+					return true;
+				}
 			}
 		}
 		return false;

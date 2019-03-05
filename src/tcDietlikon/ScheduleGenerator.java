@@ -119,7 +119,7 @@ public class ScheduleGenerator {
 		
 	// write schedule
 		ScheduleWriter scheduleWriter = new ScheduleWriter(schedule);
-		scheduleWriter.write("Sommertraining_Einteilung.xlsx");
+		scheduleWriter.write("EinteilungenTennisschuleKeller_2018Winter.xlsx");
 
 	}
 
