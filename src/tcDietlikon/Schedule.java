@@ -1839,6 +1839,11 @@ public class Schedule {
 //		System.out.println("Unused player tolerance:  "+groupEfficiencyBins.toString());
 		System.out.println("Spaces remaining free:    "+playerEfficiencyBins.toString());
 
+		this.totalUsedSots();
+		
+	}
+
+	public int totalUsedSots() {
 		// check how many slots have been used (where an actual lecture is held)
 		int nSlotsUsed = 0;
 		for (Slot slot : this.slots.values()) {
@@ -1847,7 +1852,7 @@ public class Schedule {
 			}
 		}
 		System.out.println("TOTAL number of slots required = "+nSlotsUsed);
-		
+		return nSlotsUsed;
 	}
 
 	public void verifyCompliance(Map<Integer,Player> players) {

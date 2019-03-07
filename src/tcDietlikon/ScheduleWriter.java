@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -20,11 +21,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-// TODO
-// - how to deal with same player profiles
-// - Vorschläge aussortieren --> die mit grössten Gruppen als Prio setzen, dann ev. den Tag noch diversifizieren
-// - Wenn keine termine, dann einen Minusstrich machen
-// - Linksbündigkeit für rechte Spalte
 
 public class ScheduleWriter {
 
@@ -41,6 +37,8 @@ public class ScheduleWriter {
 	XSSFCellStyle undesiredSlotStyle;
 	XSSFCellStyle slotTitleCellStyle;
 	CellStyle headerCellStyle;
+	CellStyle headerCellStyle2;
+	CellStyle leftAlignCellStyle;
 	
 	
 	public ScheduleWriter() {
@@ -76,10 +74,13 @@ public class ScheduleWriter {
 				for (int court=1; court<=this.schedule.nCourts; court++) {
 					refColNr = this.schedule.slot2col(day, court);
 					Cell slotCell = row.createCell(refColNr);
-					slotCell.setCellValue(this.schedule.slot2name(day,time,court)+" ("+this.schedule.dayTimeCourt2slotId(day, time, court)+")");
+					if (this.schedule.slots.containsKey(this.schedule.dayTimeCourt2slotId(day, time, court))) {
+						slotCell.setCellValue(this.schedule.slot2name(day,time,court)+" ("+this.schedule.dayTimeCourt2slotId(day, time, court)+")");
+					}
+					else {
+						slotCell.setCellValue("Tennishalle Dietlikon AG");
+					}
 					slotCell.setCellStyle(slotTitleCellStyle);
-//					Cell slotIdCell = row.createCell(refColNr+1);
-//					slotIdCell.setCellValue("("+this.dayTimeCourt2slotId(day, time, court)+")");
 				}
 			}
 		}
@@ -260,6 +261,9 @@ public class ScheduleWriter {
 		Cell titleCell = headerRow.createCell(0);
 		titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining");
 		titleCell.setCellStyle(headerCellStyle);
+		Cell totalSlotsCell = headerRow.createCell(6);
+		totalSlotsCell.setCellValue("Total Gruppen (unter Vorbehalt nicht vollständig gesetzter Spieler) = "+this.schedule.totalUsedSots());
+		totalSlotsCell.setCellStyle(headerCellStyle2);
 
 		FileOutputStream fileOut = new FileOutputStream(fileName);
 		this.defaultWorkbook.write(fileOut);
@@ -435,12 +439,23 @@ public class ScheduleWriter {
 		chapterTitleCell.setCellValue(chapterTitle);
 		chapterTitleCell.setCellStyle(chapterCellStyle);
 		refRowNr++;
-		for (Player player : notEnoughSlotsPlayers) {
-			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
-			
-			// check if another same player profile must be placed here!!
-			// XXX ...
-			processedPlayers.add(player.playerNr);
+		if (notEnoughSlotsPlayers.size()==0) {
+			Cell m1 = rows.get(refRowNr).createCell(0);
+			Cell m2 = rows.get(refRowNr).createCell(1);
+			m1.setCellValue("keine");
+			m2.setCellValue("-");
+			m1.setCellStyle(leftAlignCellStyle);
+			m2.setCellStyle(leftAlignCellStyle);
+			refRowNr++;
+		}
+		else {
+			for (Player player : notEnoughSlotsPlayers) {
+				refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+				
+				// check if another same player profile must be placed here!!
+				// XXX ...
+				processedPlayers.add(player.playerNr);
+			}			
 		}
 		refRowNr +=4;
 		category = 1; // "undesirableSlots";
@@ -450,12 +465,22 @@ public class ScheduleWriter {
 		chapterTitleCell.setCellValue(chapterTitle);
 		chapterTitleCell.setCellStyle(chapterCellStyle);
 		refRowNr++;
-		for (Player player : undesirablyPlacedPlayers) {
-			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
-			
-			// check if another same player profile must be placed here!!
-			// XXX ...
-			processedPlayers.add(player.playerNr);
+		if (undesirablyPlacedPlayers.size()==0) {
+			Cell m1 = rows.get(refRowNr).createCell(0);
+			Cell m2 = rows.get(refRowNr).createCell(1);
+			m1.setCellValue("keine");
+			m2.setCellValue("-");
+			m1.setCellStyle(leftAlignCellStyle);
+			m2.setCellStyle(leftAlignCellStyle);
+			refRowNr++;
+		}
+		else {
+			for (Player player : undesirablyPlacedPlayers) {
+				refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+				// check if another same player profile must be placed here!!
+				// XXX ...
+				processedPlayers.add(player.playerNr);
+			}			
 		}
 		refRowNr +=4;
 		category = 2; // "desirableSlots";
@@ -469,23 +494,27 @@ public class ScheduleWriter {
 			if (processedPlayers.contains(player.playerNr)) {
 				continue;
 			}
-			if (player.nSlots-player.selectedSlots.size()>0) {
-				System.out.println("CAUTION: Player is left in desirable category although it does not have all slots filled! It is player with ID="+player.playerNr);
+			if (player.nSlots - player.selectedSlots.size() > 0) {
+				System.out.println(
+						"CAUTION: Player is left in desirable category although it does not have all slots filled! It is player with ID="
+								+ player.playerNr);
 			}
-			if (player.undesirablePlacements.size()>0) {
-				System.out.println("CAUTION: Player is left in desirable category although it has undesirable slots! It is player with ID="+player.playerNr);
+			if (player.undesirablePlacements.size() > 0) {
+				System.out.println(
+						"CAUTION: Player is left in desirable category although it has undesirable slots! It is player with ID="
+								+ player.playerNr);
 			}
 			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
-			
+
 			// check if another same player profile must be placed here!!
 			// XXX ...
-			processedPlayers.add(player.playerNr);
+			processedPlayers.add(player.playerNr);		
 		}
 		
 		// Resize all columns to fit the content size
 		for (int i = 0; i <= 2; i++) {
 //			sheet.autoSizeColumn(i);
-			sheet.setColumnWidth(i, 8000);
+			sheet.setColumnWidth(i, 6700);
 		}
 		
 		// Make header after resizing so that first column is not super wide due to long title of first headerCell
@@ -518,6 +547,12 @@ public class ScheduleWriter {
 		this.headerCellStyle = defaultWorkbook.createCellStyle();
 		headerCellStyle.setFont(headerFont);
 		
+		Font headerFont2 = defaultWorkbook.createFont();
+		headerFont2.setBold(true);
+		headerFont2.setFontHeightInPoints((short) 14);
+		this.headerCellStyle2 = defaultWorkbook.createCellStyle();
+		headerCellStyle2.setFont(headerFont2);
+		
 		Font chapterFont = defaultWorkbook.createFont();
 		chapterFont.setBold(true);
 		chapterFont.setFontHeightInPoints((short) 18);
@@ -545,6 +580,7 @@ public class ScheduleWriter {
 		XSSFColor nSlotsXCellColor = new XSSFColor(new Color(221,235,247));
 		nSlotsXCellStyle.setFillBackgroundColor(nSlotsXCellColor);
 		nSlotsXCellStyle.setFillForegroundColor(nSlotsXCellColor);
+		nSlotsXCellStyle.setAlignment(HorizontalAlignment.LEFT);
 		
 		Font sectionTitleFont = defaultWorkbook.createFont();
 		sectionTitleFont.setBold(true);
@@ -583,6 +619,9 @@ public class ScheduleWriter {
 		this.leftBorderCellStyle = defaultWorkbook.createCellStyle();
 		leftBorderCellStyle.setBorderLeft(BorderStyle.THICK);
 		
+		this.leftAlignCellStyle = defaultWorkbook.createCellStyle();
+		leftAlignCellStyle.setAlignment(HorizontalAlignment.LEFT);;
+		
 	}
 
 	private int writePlayer2Table(Player player, int refRowNr, int category, String chapterTitle, List<Row> rows) {
@@ -594,25 +633,47 @@ public class ScheduleWriter {
 		nameCell1.setCellStyle(cellStyles.get(category));
 		nameCell2.setCellStyle(cellStyles.get(category));
 		refRowNr++;
+		Cell remarkCell1 = rows.get(refRowNr).createCell(0);
+		Cell remarkCell2 = rows.get(refRowNr).createCell(1);
+		remarkCell1.setCellValue("Spielerbemerkungen");
+		if (player.samePersonPlayerProfiles.size()>0) {
+			String samePlayerProfiles = "Gleicher Spieler hat noch andere Profile ";
+			for (int s : player.samePersonPlayerProfiles) {
+				Player samePlayer = this.schedule.players.get(s);
+				for (Slot slot : samePlayer.selectedSlots) {
+					samePlayerProfiles += "("+Slot.dayNr2Name(slot.weekdayNr)+"-"+slot.time+"h-Court"+slot.courtNr+")";
+				}
+			}
+			remarkCell2.setCellValue(player.notes + "\r\n" + samePlayerProfiles);
+		}
+		else {
+			remarkCell2.setCellValue(player.notes);
+		}
+		remarkCell2.setCellStyle(leftAlignCellStyle);
+		refRowNr++;
 		Cell ageCell1 = rows.get(refRowNr).createCell(0);
 		Cell ageCell2 = rows.get(refRowNr).createCell(1);
 		ageCell1.setCellValue("Alter");
 		ageCell2.setCellValue(player.age);
+		ageCell2.setCellStyle(leftAlignCellStyle);
 		refRowNr++;
 		Cell strengthCell1 = rows.get(refRowNr).createCell(0);
 		Cell strengthCell2 = rows.get(refRowNr).createCell(1);
 		strengthCell1.setCellValue("Spielstärke / Kategorie");
 		strengthCell2.setCellValue(player.strength2string());
+		strengthCell2.setCellStyle(leftAlignCellStyle);
 		refRowNr++;
 		Cell sizeCell1 = rows.get(refRowNr).createCell(0);
 		Cell sizeCell2 = rows.get(refRowNr).createCell(1);
 		sizeCell1.setCellValue("Max. Gruppengrösse");
 		sizeCell2.setCellValue(player.maxGroupSize);
+		sizeCell2.setCellStyle(leftAlignCellStyle);
 		refRowNr++;
 		Cell nSlotsCell1 = rows.get(refRowNr).createCell(0);
 		Cell nSlotsCell2 = rows.get(refRowNr).createCell(1);
 		nSlotsCell1.setCellValue("# Gewünschte Trainings");
 		nSlotsCell2.setCellValue(player.nSlots);
+		nSlotsCell2.setCellStyle(leftAlignCellStyle);
 		refRowNr++;
 		Cell nSlotsXCell1 = rows.get(refRowNr).createCell(0);
 		Cell nSlotsXCell2 = rows.get(refRowNr).createCell(1);
@@ -635,20 +696,31 @@ public class ScheduleWriter {
 		selected2.setCellStyle(sectionTitleStyle);
 		refRowNr++;
 		
-		for (Slot slot : player.selectedSlots) {
-			String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.players.size();
-			String remark = "";
-			if (category==1) {	// undesired player category
-				remark = "Unerwünschter Slot";
-			}
-			else {
-				remark = "OK";
-			}
-			Cell slotCell = rows.get(refRowNr).createCell(0);
-			Cell remarkCell = rows.get(refRowNr).createCell(1);
-			slotCell.setCellValue(training);
-			remarkCell.setCellValue(remark);
+		if (player.selectedSlots.size()==0) {
+			Cell m1 = rows.get(refRowNr).createCell(0);
+			Cell m2 = rows.get(refRowNr).createCell(1);
+			m1.setCellValue("keine");
+			m2.setCellValue("-");
+			m1.setCellStyle(leftAlignCellStyle);
+			m2.setCellStyle(leftAlignCellStyle);
 			refRowNr++;
+		}
+		else {
+			for (Slot slot : player.selectedSlots) {
+				String training = Slot.dayNr2Name(slot.weekdayNr) + " - " + slot.time + "h - Court " + slot.courtNr
+						+ " - G" + slot.players.size();
+				String remark = "";
+				if (category == 1) { // undesired player category
+					remark = "Unerwünschter Slot";
+				} else {
+					remark = "OK";
+				}
+				Cell slotCell = rows.get(refRowNr).createCell(0);
+				Cell remarkCell = rows.get(refRowNr).createCell(1);
+				slotCell.setCellValue(training);
+				remarkCell.setCellValue(remark);
+				refRowNr++;
+			}
 		}
 		
 		Cell desired1 = rows.get(refRowNr).createCell(0);
@@ -658,14 +730,25 @@ public class ScheduleWriter {
 		desired2.setCellStyle(sectionTitleStyle);
 		refRowNr++;
 		
-		for (Slot slot : player.desiredSlots) {
-			String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h";
-			String remark = "-";
-			Cell slotCell = rows.get(refRowNr).createCell(0);
-			Cell remarkCell = rows.get(refRowNr).createCell(1);
-			slotCell.setCellValue(training);
-			remarkCell.setCellValue(remark);
+		if (player.desiredSlots.size()==0) {
+			Cell m1 = rows.get(refRowNr).createCell(0);
+			Cell m2 = rows.get(refRowNr).createCell(1);
+			m1.setCellValue("keine");
+			m2.setCellValue("-");
+			m1.setCellStyle(leftAlignCellStyle);
+			m2.setCellStyle(leftAlignCellStyle);
 			refRowNr++;
+		}
+		else {
+			for (Slot slot : player.desiredSlots) {
+				String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h";
+				String remark = "-";
+				Cell slotCell = rows.get(refRowNr).createCell(0);
+				Cell remarkCell = rows.get(refRowNr).createCell(1);
+				slotCell.setCellValue(training);
+				remarkCell.setCellValue(remark);
+				refRowNr++;
+			}
 		}
 		
 		if (category==0 || category==1) {
@@ -682,16 +765,27 @@ public class ScheduleWriter {
 			alternative2.setCellStyle(sectionTitleStyle);
 			refRowNr++;
 			
-			for (Entry<Slot,String> entry : player.postProposedSlots.entrySet()) {
-				Slot slot = entry.getKey();
-				String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.players.size();
-				String remark = entry.getValue();
-				Cell slotCell = rows.get(refRowNr).createCell(0);
-				Cell remarkCell = rows.get(refRowNr).createCell(1);
-				slotCell.setCellValue(training);
-				remarkCell.setCellValue(remark);
+			if (player.postProposedSlots.size()==0) {
+				Cell m1 = rows.get(refRowNr).createCell(0);
+				Cell m2 = rows.get(refRowNr).createCell(1);
+				m1.setCellValue("keine");
+				m2.setCellValue("-");
+				m1.setCellStyle(leftAlignCellStyle);
+				m2.setCellStyle(leftAlignCellStyle);
 				refRowNr++;
-			}			
+			}
+			else {
+				for (Entry<Slot,String> entry : player.postProposedSlots.entrySet()) {
+					Slot slot = entry.getKey();
+					String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.players.size();
+					String remark = entry.getValue();
+					Cell slotCell = rows.get(refRowNr).createCell(0);
+					Cell remarkCell = rows.get(refRowNr).createCell(1);
+					slotCell.setCellValue(training);
+					remarkCell.setCellValue(remark);
+					refRowNr++;
+				}
+			}
 		}
 		
 		return refRowNr;

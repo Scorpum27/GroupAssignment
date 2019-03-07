@@ -333,12 +333,20 @@ public class PlayerUtils {
         			category = "TC";
         			maxAgeDiff = 100;
         			maxClassDiff = 0;
+//        			strength = createUniformDistribution(7,9);
+//        			category = "default";
+//        			maxAgeDiff = 3;
+//        			maxClassDiff = 2;
         		}
         		else if (strengthString.equals("G")){
         			strength = 21;
         			category = "G";
         			maxAgeDiff = 100;
         			maxClassDiff = 0;
+//        			strength = createUniformDistribution(7,9);
+//        			category = "default";
+//        			maxAgeDiff = 3;
+//        			maxClassDiff = 2;
         		}
         		
         		else if (strengthString.equals("O")){
@@ -346,12 +354,20 @@ public class PlayerUtils {
         			category = "O";
         			maxAgeDiff = 100;
         			maxClassDiff = 0;
+//        			strength = createUniformDistribution(7,9);
+//        			category = "default";
+//        			maxAgeDiff = 3;
+//        			maxClassDiff = 2;
         		}
         		else if (strengthString.equals("R")){
         			strength = 23;
         			category = "R";
         			maxAgeDiff = 100;
         			maxClassDiff = 0;
+//        			strength = createUniformDistribution(7,9);
+//        			category = "default";
+//        			maxAgeDiff = 3;
+//        			maxClassDiff = 2;
         		}
         		else if (strengthString.contains("R")) {
         			strength = Integer.parseInt(strengthString.substring(1));
@@ -391,6 +407,10 @@ public class PlayerUtils {
         			System.out.println(r);
         			maxGroupSize = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(4)));        			
         		}
+        		
+//        		if (maxGroupSize>4) {
+//        			maxGroupSize = 4;
+//        		}
 
         		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize, category);
         		newPlayer.maxAgeDiff = maxAgeDiff;
@@ -444,6 +464,11 @@ public class PlayerUtils {
 		return players;
 	}
 	
+	private static Integer createUniformDistribution(int i, int j) {
+		int diff = j-i;
+		return i+(new Random().nextInt(diff+1));
+	}
+
 	public static List<Player> reversePlayerList(List<Player> players){
 		List<Player> playersReverse = new ArrayList<Player>();
 		for (Player player : players) {

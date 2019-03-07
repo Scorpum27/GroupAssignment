@@ -12,7 +12,7 @@ public class Player {
 	
 	String name;
 	int playerNr;
-	String notes;
+	String notes = "";
 	int age;
 	int nSlots = 0;
 	boolean slotNrSatisfied = true;

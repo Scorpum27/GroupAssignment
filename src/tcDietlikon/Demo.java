@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Map.Entry;
 
 import org.apache.poi.EncryptedDocumentException;
@@ -16,35 +17,41 @@ public class Demo {
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws EncryptedDocumentException, InvalidFormatException, IOException {
 
+		int i = 7;
+		int j = 9;
+		int diff = j-i;
+		System.out.println((i+(new Random().nextInt(diff+1))));
 		
-		Map<Integer,Player> players = new HashMap<Integer,Player>();
-		String playerRegistrationFile = "PlayersTCDietlikonWinter2018.xlsx";
-		players = PlayerUtils.loadPlayers(playerRegistrationFile);
-		Schedule schedule = new Schedule(3, 6, 6, 21);
-		Map<Integer,Integer> slotFrequencies = new HashMap<Integer,Integer>();
-		for (Player player : players.values()) {
-			for (Slot slot : player.desiredSlots) {
-				int slotId = schedule.dayTimeCourt2slotId(slot.weekdayNr, slot.time, 1);
-				if (slotFrequencies.containsKey(slotId)) {
-					slotFrequencies.put(slotId, slotFrequencies.get(slotId)+1);
-				}
-				else {
-					slotFrequencies.put(slotId, 1);
-				}
-			}
-		}
+// XXX
 		
-		Map<String,Integer> slotFrequenciesX = new HashMap<String,Integer>();
-		for (Entry<Integer,Integer> entry : slotFrequencies.entrySet()) {
-			Slot realSlot = schedule.slots.get(entry.getKey());
-			slotFrequenciesX.put(schedule.slot2name(realSlot.weekdayNr, realSlot.time, 1), entry.getValue());
-		}
-		for (int i=0; i<250; i++) {
-			if (slotFrequencies.containsKey(i)) {
-				Slot realSlot = schedule.slots.get(i);
-				System.out.println(slotFrequencies.get(i)+" - "+schedule.slot2name(realSlot.weekdayNr, realSlot.time, 1));				
-			}
-		}
+//		Map<Integer,Player> players = new HashMap<Integer,Player>();
+//		String playerRegistrationFile = "PlayersTCDietlikonWinter2018.xlsx";
+//		players = PlayerUtils.loadPlayers(playerRegistrationFile);
+//		Schedule schedule = new Schedule(3, 6, 6, 21);
+//		Map<Integer,Integer> slotFrequencies = new HashMap<Integer,Integer>();
+//		for (Player player : players.values()) {
+//			for (Slot slot : player.desiredSlots) {
+//				int slotId = schedule.dayTimeCourt2slotId(slot.weekdayNr, slot.time, 1);
+//				if (slotFrequencies.containsKey(slotId)) {
+//					slotFrequencies.put(slotId, slotFrequencies.get(slotId)+1);
+//				}
+//				else {
+//					slotFrequencies.put(slotId, 1);
+//				}
+//			}
+//		}
+//		
+//		Map<String,Integer> slotFrequenciesX = new HashMap<String,Integer>();
+//		for (Entry<Integer,Integer> entry : slotFrequencies.entrySet()) {
+//			Slot realSlot = schedule.slots.get(entry.getKey());
+//			slotFrequenciesX.put(schedule.slot2name(realSlot.weekdayNr, realSlot.time, 1), entry.getValue());
+//		}
+//		for (int i=0; i<250; i++) {
+//			if (slotFrequencies.containsKey(i)) {
+//				Slot realSlot = schedule.slots.get(i);
+//				System.out.println(slotFrequencies.get(i)+" - "+schedule.slot2name(realSlot.weekdayNr, realSlot.time, 1));				
+//			}
+//		}
 		
 		
 // XXX
