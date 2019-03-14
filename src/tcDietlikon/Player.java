@@ -23,11 +23,16 @@ public class Player {
 	int maxClassDiff;
 	int worstPlacementRound = -1;
 	double linkability = 0.0;
+	boolean isFrozen = false;
 	List<Slot> desiredSlots = new ArrayList<Slot>();
 	List<Slot> selectedSlots = new ArrayList<Slot>();
+	List<Integer> frozenSameGroupPeers = new ArrayList<Integer>();
+	List<String> frozenSameGroupPeerStrings = new ArrayList<String>();
 	List<Integer> linkablePlayers = new ArrayList<Integer>();
-	List<Slot> undesirablePlacements = new ArrayList<Slot>();
 	List<Integer> samePersonPlayerProfiles = new ArrayList<Integer>();
+	List<Slot> undesirablePlacements = new ArrayList<Slot>();
+	List<Player> subPlayerProfiles = new ArrayList<Player>();
+	// subPlayerProfiles is usually empty, but may be used to list peers who NEED to play together and are therefore combined in one player
 	Map<Slot,String> postProposedSlots = new HashMap<Slot,String>();
 	
 	public Player clone() {
@@ -45,11 +50,18 @@ public class Player {
 		copy.category = this.category;
 		copy.worstPlacementRound = this.worstPlacementRound;
 		copy.linkability = this.linkability;
+		copy.isFrozen = this.isFrozen;
 		for (Integer linkablePlayerNr : this.linkablePlayers) {
 			copy.linkablePlayers.add(linkablePlayerNr);
 		}
 		for (Integer samePersonNr : this.samePersonPlayerProfiles) {
 			copy.samePersonPlayerProfiles.add(samePersonNr);
+		}
+		for (Integer mustHavePeer : this.frozenSameGroupPeers) {
+			copy.frozenSameGroupPeers.add(mustHavePeer);
+		}
+		for (String mustHavePeerName : this.frozenSameGroupPeerStrings) {
+			copy.frozenSameGroupPeerStrings.add(mustHavePeerName);
 		}
 		for (Slot desiredSlot : this.desiredSlots) {
 			copy.desiredSlots.add(desiredSlot);
@@ -62,6 +74,9 @@ public class Player {
 		}
 		for (Entry<Slot,String> entry : this.postProposedSlots.entrySet()) {
 			copy.postProposedSlots.put(entry.getKey(), entry.getValue());
+		}
+		for (Player player : this.subPlayerProfiles) {
+			copy.subPlayerProfiles.add(player);
 		}
 		return copy;
 	}
@@ -106,6 +121,14 @@ public class Player {
 		this.undesirablePlacements = new ArrayList<Slot>();
 	}
 	
+	public int getSize() {
+		if (this.subPlayerProfiles.size()==0) {
+			return 1;	// does not have subProfiles and is therefore a single player
+		}
+		else {
+			return this.subPlayerProfiles.size();	// has several subProfiles and therefore carries and places more than one player at the time
+		}
+	}
 
 	public boolean isADesiredSlot(Slot timeslot) {
 		for (Slot desiredSlot : this.desiredSlots) {
@@ -117,6 +140,10 @@ public class Player {
 	}
 	
 	public boolean removeSelectedSlot(Slot xSlot) {
+		if (this.isFrozen) {
+			System.out.println("CAUTION: Player did not allow slot removal as the player is frozen.");
+			return false;
+		}
 		Iterator<Slot> slotIter = this.selectedSlots.iterator();
 		while (slotIter.hasNext()) {
 			Slot slot = slotIter.next();

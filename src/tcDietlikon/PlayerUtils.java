@@ -8,6 +8,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -286,7 +287,8 @@ public class PlayerUtils {
 		return sortedPlayers;
 	}
 
-	public static Map<Integer, Player> loadPlayers(String file) throws EncryptedDocumentException, InvalidFormatException, IOException {
+	public static Map<Integer, Player> loadPlayers(String file, boolean considerMustHavePeerWishes, boolean mergeMustBePeers2OnePlayer)
+			throws EncryptedDocumentException, InvalidFormatException, IOException {
 
 		Date date = new Date();
 		Calendar calendar = new GregorianCalendar();
@@ -313,7 +315,19 @@ public class PlayerUtils {
         		playerCounter++;
         		Integer playerNr = playerCounter;
         		String name = dataFormatter.formatCellValue(row.getCell(0));
-        		String playerNotes = dataFormatter.formatCellValue(row.getCell(0));
+        		// do this in case spelling of name accidentially has space at beginning or end
+        		if (name.startsWith(" ")) {
+        			name = name.substring(1, name.length());
+        		}
+        		if (name.endsWith(" ")) {
+        			name = name.substring(0, name.length()-1);
+        		}
+        		String mustHavePeerCellContent = dataFormatter.formatCellValue(row.getCell(5));
+        		String[] mustHavePeers = new String[0];
+        		if (!mustHavePeerCellContent.equals("")) {
+        			mustHavePeers = mustHavePeerCellContent.split(",");        			
+        		}
+        		String playerNotes = dataFormatter.formatCellValue(row.getCell(6));
         		// players have different categories
         		// if normal junior category: have to parse player strength as it is given with prefix "R" or "N"
         		// for slot categories instead of solely using player strength may change the following:
@@ -423,6 +437,15 @@ public class PlayerUtils {
         				newPlayer.samePersonPlayerProfiles.add(loadedPlayer.playerNr);
         			}
         		}
+        		if (considerMustHavePeerWishes && mustHavePeers.length>0) {
+        			for (String mustHavePeerName : mustHavePeers) {
+        				// make sure not to add spaces from the comma separation in the excel file e.g. in front of Sascha Mark in Cyrill Keller, Sascha Mark
+        				if (mustHavePeerName.startsWith(" ")) {
+        					mustHavePeerName = mustHavePeerName.substring(1,mustHavePeerName.length());
+        				}
+        				newPlayer.frozenSameGroupPeerStrings.add(mustHavePeerName);
+        			}
+        		}
         		players.put(playerCounter, newPlayer);
         		
         		for (int slotRowNr=r+1; slotRowNr<= r+6; slotRowNr++) {
@@ -444,8 +467,89 @@ public class PlayerUtils {
         		}
 //        		System.out.println("Player name = "+name);
         	}
-        	
         }
+        
+        if (considerMustHavePeerWishes) {
+        	// this allows to handle mustBeTogetherPeers as one player, while else loop handles them separately (separately is much more complicated)
+        	if (mergeMustBePeers2OnePlayer) {
+        		
+        	}
+        	else {
+        		// go through players and mark them with all their frozenMustHavePeers (mark both mutually)
+                // for this have to compare the desired peer names against all other players!
+                for (Player player : players.values()) {
+                	for (String playerName : player.frozenSameGroupPeerStrings) {
+                		for (Player otherPlayer : players.values()) {
+                			if (otherPlayer.name.equals(playerName) && otherPlayer.frozenSameGroupPeerStrings.contains(player.name)) {
+                				if (!player.frozenSameGroupPeers.contains(otherPlayer.playerNr) && !otherPlayer.frozenSameGroupPeers.contains(player.playerNr)) {
+                					player.frozenSameGroupPeers.add(otherPlayer.playerNr);        					
+                					otherPlayer.frozenSameGroupPeers.add(player.playerNr);        					
+                				}
+                				// now make sure that they only have mutual desired slots if they HAVE TO be in the same group
+                				Iterator<Slot> slot1iter = player.selectedSlots.iterator();
+                				slot1Loop:
+                				while(slot1iter.hasNext()) {
+                					Slot slot1 = slot1iter.next();
+                					for (Slot slot2 : otherPlayer.desiredSlots) {
+                						if (slot1.isSameTimeAndDay(slot2)) {
+                							// good, this slot is also desired by other player
+                							continue slot1Loop;
+                						}
+                					}
+                					// if code arrives here, the slot was not found in the otherPlayer --> remove from desired slots
+                					slot1iter.remove();
+                				}
+                				Iterator<Slot> slot2iter = otherPlayer.selectedSlots.iterator();
+                				slot2Loop:
+                				while(slot2iter.hasNext()) {
+                					Slot slot2 = slot2iter.next();
+                					for (Slot slot1 : player.desiredSlots) {
+                						if (slot2.isSameTimeAndDay(slot1)) {
+                							// good, this slot is also desired by other player
+                							continue slot2Loop;
+                						}
+                					}
+                					// if code arrives here, the slot was not found in the otherPlayer --> remove from desired slots
+                					slot2iter.remove();
+                				}
+                			}
+                		}
+                	}
+                	if (player.frozenSameGroupPeers.size()!=player.frozenSameGroupPeerStrings.size()) {
+                		System.out.println("CAUTION: not all desired mustHavePeers could be found in the players list. Aborting ...");
+                		System.exit(0);
+                	}
+                }
+                // CAUTION: this is dangerous, but done anyways. if several players must be together, all of their ages and rankings are set to the same
+                // to better allow accepting other players in their mutual slot
+                for (Player player : players.values()) {
+                	if (player.frozenSameGroupPeers.size()>0) {
+                		double averageStrength = 0.0;
+                		double averageAge = 0.0;
+                		int nMustBeTogetherPeers = 1 + player.frozenSameGroupPeers.size();
+                		averageStrength += 1.0*player.strength/nMustBeTogetherPeers;
+                		averageAge+= 1.0*player.age/nMustBeTogetherPeers;
+                		for (int mustHavePeerNr : player.frozenSameGroupPeers) {
+                			Player mustHavePeer = players.get(mustHavePeerNr);
+                			averageAge += 1.0*mustHavePeer.age/nMustBeTogetherPeers;
+                			averageStrength += 1.0*mustHavePeer.strength/nMustBeTogetherPeers;
+                		}
+                		int averageAgeRounded = (int) Math.round(averageAge);
+                		int averageStrengthRounded = (int) Math.round(averageStrength);
+                		// now set same average age & strength for all mustBeTogetherPeers
+                		player.age = averageAgeRounded;
+                		player.strength = averageStrengthRounded;
+                		for (int mustHavePeerNr : player.frozenSameGroupPeers) {
+                			Player mustHavePeer = players.get(mustHavePeerNr);
+                			mustHavePeer.age = averageAgeRounded;
+                			mustHavePeer.strength = averageStrengthRounded;
+                		}
+                	}
+                }
+        	}
+        }
+        
+        
     	System.out.println("Loaded the following players:");
     	System.out.println("------ ------- ------- ------- -------");
         for (Player p : players.values()) {
@@ -477,42 +581,58 @@ public class PlayerUtils {
 		return playersReverse;
 	}
 
-	public static List<Player> findOptimalPlayerCombination(List<Player> placedPlayers, List<Player> feasiblePlayers, int sizeGoal, double linkabilityMinimum) {
+	public static List<Player> findOptimalPlayerCombination(List<Player> placedPlayers, List<Player> feasiblePlayers, int sizeGoal, double linkabilityMinimum, Schedule schedule) {
 //		System.out.println("Trying to find an optimal combination of nFeasiblePlayers="+feasiblePlayers.size());
 		
 		List<Player> tempOptimalPlayers = new ArrayList<Player>();
 		
 		// try to add a new player to the list with a loop
 		outerLoop:
-		for (Player otherPlayer : feasiblePlayers) {
-			// jump over players who will not be able to fulfill sizeGoal if placed in the group (--> tehy would be limiting)
-			// just for completeness, actually only allowable players are in initial lot of feasible players (all have same maxGroupSize)
-			if (otherPlayer.maxGroupSize<sizeGoal) {
-				continue;
-			}
-			// XXX this loop should not be necessary as the feasible players are already selected by compatibility --> see below for tempFeasiblePlayers
-			for (Player player : placedPlayers) {
-				if (!player.isCompatibleWithOtherPlayer(otherPlayer)) {
-					System.out.println("Actually, a player was not compatible and could not be added");
-					System.exit(0);
-					continue outerLoop;
+		for (Player otherPlayerSingle : feasiblePlayers) {
+			// check if otherPlayer has hard condition on mustHavePeers in same group: continue only if all those players are featured in the feasiblePlayersGroup
+			// if continuing: have to add and check conditions for all must be together players --> make a new list of players for this!!
+			List<Player> otherPlayers = new ArrayList<Player>();
+			otherPlayers.add(otherPlayerSingle);
+			if (otherPlayerSingle.frozenSameGroupPeers.size()>0) {
+				for (int mustHavePlayerNr : otherPlayerSingle.frozenSameGroupPeers) {
+					Player mustHavePeer = schedule.players.get(mustHavePlayerNr);
+					if (!feasiblePlayers.contains(mustHavePeer)) {
+						continue outerLoop;
+					}
+					// if OK, may add this mustHavePlayer. if any of the mustHavePeers is not feasible the otherPlayers array will be cleared anyways :)
+					else {
+						otherPlayers.add(mustHavePeer);						
+					}
 				}
 			}
+			// jump over players who will not be able to fulfill sizeGoal if placed in the group (--> they would be limiting)
+			// just for completeness, actually only allowable players are in initial lot of feasible players (all have same maxGroupSize)
+			// if the otherPlayers are a whole bunch of peers who want to player together, must check this condition for all of them
+			for (Player otherPlayer : otherPlayers) {
+				if (otherPlayer.maxGroupSize<sizeGoal) {
+					continue outerLoop;
+				}				
+			}
 			// if the code has arrived here, the otherPlayer is compatible with all already placed players
-			// check now if slot already fulfills size goal (-1 bc new player has not yet been added)
-			if (placedPlayers.size()==sizeGoal-1) {
+			// check now if slot already fulfills size goal (-otherPlayers.size() bc new players have not yet been added)
+			if (PlayerUtils.getNumberOfIndividualPlayersFromPlayerList(placedPlayers) ==
+					sizeGoal-getNumberOfIndividualPlayersFromPlayerList(otherPlayers)) {
 				double linkability = 0.0;
 				for (Player player : placedPlayers) {
 					linkability += player.linkability;
 				}
-				linkability += otherPlayer.linkability;
+				for (Player otherPlayer : otherPlayers) {
+					linkability += otherPlayer.linkability;					
+				}
 				if (linkability<linkabilityMinimum) {
 					linkabilityMinimum = linkability;
 					tempOptimalPlayers.clear();
 					for (Player player : placedPlayers) {
 						tempOptimalPlayers.add(player);
 					}
-					tempOptimalPlayers.add(otherPlayer);
+					for (Player otherPlayer : otherPlayers) {
+						tempOptimalPlayers.add(otherPlayer);
+					}
 				}
 			}
 			else {
@@ -520,24 +640,30 @@ public class PlayerUtils {
 				for (Player player : placedPlayers) {
 					tempPlacedPlayers.add(player);
 				}
-				tempPlacedPlayers.add(otherPlayer);
+				for (Player otherPlayer : otherPlayers) {
+					tempPlacedPlayers.add(otherPlayer);					
+				}
 				// adapt feasiblePlayers here
 				List<Player> tempFeasiblePlayers = new ArrayList<Player>();
+				feasiblePlayerLoop:
 				for (Player potentialFeasiblePlayer : feasiblePlayers) {
 					// do not add otherPlayer to feasible list as it is already added to the group now
-					if (potentialFeasiblePlayer.equals(otherPlayer)) {
-						continue;
-					}
-					// add only those players who are ALSO feasible with the new player in the group (otherPayer)
-					if (otherPlayer.isCompatibleWithOtherPlayer(potentialFeasiblePlayer)) {
-						tempFeasiblePlayers.add(potentialFeasiblePlayer);
+					for (Player otherPlayer : otherPlayers) {
+						if (potentialFeasiblePlayer.equals(otherPlayer)) {
+							continue feasiblePlayerLoop;
+						}
+						// add only those players who are ALSO feasible with the new player in the group (otherPayer)
+						if (otherPlayer.isCompatibleWithOtherPlayer(potentialFeasiblePlayer)) {
+							tempFeasiblePlayers.add(potentialFeasiblePlayer);
+						}						
 					}
 				}
-				if (tempPlacedPlayers.size()+tempFeasiblePlayers.size()<sizeGoal) {
+				if (PlayerUtils.getNumberOfIndividualPlayersFromPlayerList(tempPlacedPlayers) +
+						PlayerUtils.getNumberOfIndividualPlayersFromPlayerList(tempFeasiblePlayers) < sizeGoal) {
 					continue outerLoop;
 				}
-				tempPlacedPlayers = findOptimalPlayerCombination(tempPlacedPlayers, tempFeasiblePlayers, sizeGoal, linkabilityMinimum);
-				if (tempPlacedPlayers.size()>0) {
+				tempPlacedPlayers = findOptimalPlayerCombination(tempPlacedPlayers, tempFeasiblePlayers, sizeGoal, linkabilityMinimum, schedule);
+				if (PlayerUtils.getNumberOfIndividualPlayersFromPlayerList(tempPlacedPlayers)>0) {
 					// actually the lower than minLinkability condition is obsolete, bc if a size>0 array is returned, the linkMin had to be achieved anyways
 					// XXX --> could check this with a condition :-)
 					double linkability = 0.0;
@@ -550,7 +676,9 @@ public class PlayerUtils {
 						for (Player player : placedPlayers) {
 							tempOptimalPlayers.add(player);
 						}
-						tempOptimalPlayers.add(otherPlayer);
+						for (Player otherPlayer : otherPlayers) {
+							tempOptimalPlayers.add(otherPlayer);							
+						}
 					}
 				}
 			}
@@ -561,7 +689,23 @@ public class PlayerUtils {
 		
 	}
 
+	// accumulates number of players (counts individually players from subprofiles!)
+	public static int getNumberOfIndividualPlayersFromPlayerList(List<Player> players) {
+		int totalNrIndividualPlayers = 0;
+		for (Player player : players) {
+			totalNrIndividualPlayers += player.getSize();
+		}
+		return totalNrIndividualPlayers;
+	}
 
+	// accumulates number of players (counts individually players from subprofiles!)
+		public static int getNumberOfIndividualPlayersFromPlayerMap(Map<Integer,Player> players) {
+			int totalNrIndividualPlayers = 0;
+			for (Player player : players.values()) {
+				totalNrIndividualPlayers += player.getSize();
+			}
+			return totalNrIndividualPlayers;
+		}
 
 }
 

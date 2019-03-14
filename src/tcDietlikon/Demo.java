@@ -1,14 +1,7 @@
 package tcDietlikon;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
-import java.util.Map.Entry;
-
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 

@@ -78,6 +78,8 @@ public class ScheduleGenerator {
 		boolean doNotLoadSelectedSlots = true;
 		boolean loadPlayers = true;
 		boolean useFullSlotFilling = false;
+		boolean considerMustHavePeerWishes = false;
+		boolean mergeMustBePeers2OnePlayer = false;
 
 	// create or load players
 		Map<Integer,Player> players = new HashMap<Integer,Player>();
@@ -97,7 +99,7 @@ public class ScheduleGenerator {
 		else {
 			// load players from actual TCD registration form
 			String playerRegistrationFile = "PlayersTCDietlikonWinter2018.xlsx";
-			players = PlayerUtils.loadPlayers(playerRegistrationFile);
+			players = PlayerUtils.loadPlayers(playerRegistrationFile, considerMustHavePeerWishes, mergeMustBePeers2OnePlayer);
 		}
 
 	// for each player find all other players that can be assigned to the same group

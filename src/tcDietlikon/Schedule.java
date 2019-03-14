@@ -178,10 +178,12 @@ public class Schedule {
 						rankedSlots = slotsRankedByDemandReverse;
 					}
 					for (Slot slot : slotsRankedByDemand) {
-						if (slot.players.size()>0) {	// only fill into empty slots
+						if (slot.getSize()>0) {	// only fill into empty slots
 							continue;
 						}
-						boolean fillSuccessful = slot.fillWithPlayers(fullnessGoalPlacementRound, maxGroupSizePlacementRound, players, schedule);
+						boolean fillSuccessful = slot.fillWithPlayers(fullnessGoalPlacementRound, maxGroupSizePlacementRound, schedule);
+						// in the above method, the algorithm tries to place mustBeTogetherPeers together
+						// if it fails, the single players can still be pushed individually below and have not yet been set frozen together in the mutual group
 					}
 				}
 			}
@@ -197,6 +199,8 @@ public class Schedule {
 				}
 				// use strategy 2 or lower to consider only desired slots and all other constraints
 				Integer unsuccessfulPlacementsThisPlayer = schedule.placePlayer(player, 2, initialPlacementStrategy);	// XXX 2 instead of 3
+				// in the above method, the algorithm tries to place mustBeTogetherPeers together
+				// if it fails, the single players can still be pushed individually below and have not yet been set frozen together in the mutual group
 				// if player could not be assigned to enough slots with placement strategies, this is a problem
 				// --> try to make a push and reassign another player in order to fit both slots
 				// --> make sure an undesirable placement (in schedule.placePlayer) is always marked within the player
@@ -403,7 +407,7 @@ public class Schedule {
 		}
 		for (Slot fixedSlot : fixedSlotList) {
 			for (Player player : fixedSlot.players.values()) {
-				player.maxGroupSize = Math.max(fixedSlot.players.size(), player.maxGroupSize);
+				player.maxGroupSize = Math.max(fixedSlot.getSize(), player.maxGroupSize);
 			}
 		}
 		
@@ -428,7 +432,11 @@ public class Schedule {
 			// if no, just add a new player to the players group as a clone of the fixed player --> then point fixedPlayer to new player!!
 			if (!playerAlreadyRegistered) {
 				Player newPlayer = new Player(fixedPlayer.name);
-				newPlayer.playerNr = players.size()+1;
+				int totalAmountOfPlayers = 0;
+				for (Player playerUnit : players.values()) {
+					totalAmountOfPlayers += playerUnit.getSize();
+				}
+				newPlayer.playerNr = totalAmountOfPlayers+1;
 				newPlayer.maxGroupSize = fixedPlayer.maxGroupSize;
 				newPlayer.nSlots = fixedPlayer.nSlots;
 				players.put(newPlayer.playerNr, newPlayer);
@@ -447,7 +455,8 @@ public class Schedule {
 			// set as frozenSlot and add players, which are now pointing to the new players in the players set!
 			officialScheduleSlot.isFrozen = true;
 			for (Player player : fixedSlot.players.values()) {
-				officialScheduleSlot.addPlayer(player.playerNr, player);				
+				officialScheduleSlot.addPlayer(player.playerNr, player);
+				player.isFrozen = true;
 			}
 		}
 	}
@@ -493,10 +502,9 @@ public class Schedule {
 		// try to assign to player as many slots as it still needs to satisfy its number of desired lessons (#desiredSlots-#alreadySelectedSlots)
 		int nrOfNotYetAssignedSlots = player.nSlots-player.selectedSlots.size();
 		for (int s=1; s<=nrOfNotYetAssignedSlots; s++) {	// 		for (int s=1; s<=player.nSlots-player.selectedSlots.size(); s++) {
-			if (initialPlacementStrategy==3) {
-				
-				continue;
-			}
+//			if (initialPlacementStrategy==3) {
+//				continue;
+//			}
 			Slot currentlyOptimalSlot = null;
 //					List<Slot> currentlyLargestFeasibleSlots = new ArrayList<Slot>();
 			// b] Fill in a G3 first into a G3 before a G4 --> start by filling into groups with same maxGroupSize.
@@ -511,18 +519,18 @@ public class Schedule {
 					if (receiverGroupSizeLimit != slot.limitingPlayerMaxGroupSize()) {
 						continue;
 					}
-					if (slot.acceptsPlayer(player, strategy, false, this)) {
+					if (slot.acceptsPlayer(player, strategy, false, this, true)) {
 						// if first acceptable slot found
 						if (currentlyOptimalSlot == null) {
 							currentlyOptimalSlot = slot;
 						}
 						// if can be added to a fuller slot
-						if (slot.players.size()>currentlyOptimalSlot.players.size()) {
+						if (slot.getSize()>currentlyOptimalSlot.getSize()) {
 							currentlyOptimalSlot = slot;
 							continue;
 						}
 						// if same full slot, check if other slot properties are better
-						else if(slot.players.size()==currentlyOptimalSlot.players.size()) {
+						else if(slot.getSize()==currentlyOptimalSlot.getSize()) {
 							// if day is preferable (usually Mo/Tu/Th > Fr > We) to keep high demand days as available as possible!
 							// --> or maybe it is exactly opposite
 							if (slot.isPreferableDayToOtherSlot(currentlyOptimalSlot,initialPlacementStrategy)) {
@@ -572,6 +580,23 @@ public class Schedule {
 				if (strategy>2) {
 					player.undesirablePlacements.add(currentlyOptimalSlot);
 				}
+				// if player has mustHavePeers, set to frozen and do all addings for the must have peers!
+				if (player.frozenSameGroupPeers.size() > 0) {
+					player.isFrozen = true;
+					for (int mustHavePeerNr : player.frozenSameGroupPeers) {
+						Player mustHavePeer = this.players.get(mustHavePeerNr);
+						mustHavePeer.isFrozen = true;
+						currentlyOptimalSlot.addPlayer(mustHavePeer.playerNr, mustHavePeer);
+						mustHavePeer.addSelectedSlot(currentlyOptimalSlot);
+						if (strategy>mustHavePeer.worstPlacementRound) {
+							mustHavePeer.worstPlacementRound = strategy;					
+						}
+						if (strategy>2) {
+							mustHavePeer.undesirablePlacements.add(currentlyOptimalSlot);
+						}
+					}					
+				}
+				// ---
 				continue;				
 			}
 			else {
@@ -583,7 +608,7 @@ public class Schedule {
 				// place the unsuccessful player in an early monday slot on a not active court for reassignement
 //				for (int day=0; day<=4; day++) {
 //					Slot slot = this.slots.get(1+day*3);
-//					if (slot.players.size()>=8) {
+//					if (slot.getSize()>=8) {
 //						continue;
 //					}
 //					else {
@@ -689,7 +714,14 @@ public class Schedule {
 	private void postOptimization() {
 		// SLOT ASSIGNMENT as for initial placement where it is also permitted to assign to empty slots
 		// first try to reassign undesirable slots, then try to assign unassigned slot requests of individual players
-		for (Player player : this.players.values()) {
+		// use this list work-around to avoid ConcurrentModificationException
+		List<Integer> playerNrsList = new ArrayList<Integer>();
+		playerNrsList.addAll(this.players.keySet());
+		for (int playerNr : playerNrsList) {
+			Player player = this.players.get(playerNr);
+			if (player.isFrozen) {
+				continue;
+			}
 			// first all slots which have been assigned in unsatisfying manner
 			for (Slot undesirableSlot : player.undesirablePlacements) {
 				// System.out.println("Trying 1");
@@ -724,23 +756,23 @@ public class Schedule {
 		for (Slot slot : this.slots.values()) {
 			// first try to merge two already assigned groups
 			for (Slot otherSlot1 : this.slots.values()) {
-				if (otherSlot1.players.size()==0) {
+				if (otherSlot1.getSize()==0) {
 					continue;
 				}
 				for (Slot otherSlot2 : this.slots.values()) {
-					if (otherSlot2.players.size()==0) {
+					if (otherSlot2.getSize()==0) {
 						continue;
 					}
 					// slot may actually by one of the two otherslots. this is also possible w/o modification as it results in a push/pull of an entire slot
 					// this is the only case where a not empty slot can be used as a merger location. else, the slot already has players and cannot take another two groups
-					if (slot.players.size()!=0 && !slot.equals(otherSlot1) && !slot.equals(otherSlot2)) {
+					if (slot.getSize()!=0 && !slot.equals(otherSlot1) && !slot.equals(otherSlot2)) {
 						continue;
 					}
 					if (otherSlot1.equals(otherSlot2)) {
 						continue;
 					}
 					if (slot.mergerFeasible(otherSlot1, otherSlot2, this)) {
-						System.out.println("Merging two slots with sizes "+otherSlot1.players.size()+"/"+otherSlot2.players.size());
+						System.out.println("Merging two slots with sizes "+otherSlot1.getSize()+"/"+otherSlot2.getSize());
 						// add slot, player and mark slot with category if it is not the same slot
 						if (!slot.equals(otherSlot1)) {
 							for (Player player : otherSlot1.players.values()) {
@@ -775,11 +807,11 @@ public class Schedule {
 				for (int n=1; n<=nUnplaced; n++) {
 					for (Slot otherSlot2 : this.slots.values()) {
 						// merger receiver slot must be empty except if merger takes place into on of the two source slots (otherSlot1/2)
-						if (slot.players.size()!=0 && !slot.equals(otherSlot2)) {
+						if (slot.getSize()!=0 && !slot.equals(otherSlot2)) {
 							continue;
 						}
 						if (slot.mergerFeasible(player, otherSlot2, this)) {
-							System.out.println("Merging a slots with unassigned player slot. Slot size = "+otherSlot2.players.size());
+							System.out.println("Merging a slots with unassigned player slot. Slot size = "+otherSlot2.getSize());
 							// add slot, player and mark slot with category if it is not the same slot
 							slot.players.put(player.playerNr, player);
 							player.addSelectedSlot(slot);
@@ -844,7 +876,7 @@ public class Schedule {
 		slotIdList.addAll(this.slots.keySet());
 		for (int slotId : slotIdList) {
 			Slot slot = this.slots.get(slotId);
-			if (slot.players.size()>1) {		// XXX assign only single players to already full G4s or also groups with two players
+			if (slot.getSize()>1) {		// XXX assign only single players to already full G4s or also groups with two players
 				continue;
 			}
 			for (Player player : slot.players.values()) {
@@ -876,11 +908,11 @@ public class Schedule {
 			if (slot.isFrozen) {
 				continue;
 			}
-			if (slot.players.size()>4) {
+			if (slot.getSize()>4) {
 //				System.out.println("Trying to shrink slot = "+slotId);
 				for (Integer playerNr : slot.players.keySet()) {
 					boolean pushSuccessful = this.pushSinglePlayer(playerNr, slot.slotId, pushLevel);
-					if (pushSuccessful && slot.players.size()<=4) {
+					if (pushSuccessful && slot.getSize()<=4) {
 						break;
 					}
 				}
@@ -919,7 +951,7 @@ public class Schedule {
 			if (slot.isFrozen) {
 				continue;
 			}
-			if (slot.players.size() == groupSize) {
+			if (slot.getSize() == groupSize) {
 				// the following loop makes sure groups larger than already 4 players are only considered (-> see Version before 17h 26.02.2019)
 				// if they are TennisCross (TC, strength=20) groups with a maxGroupSize=8
 				// if a player is not a TC player, we do not consider this group above size 3 bc useless
@@ -944,6 +976,9 @@ public class Schedule {
 		// try to push all players individually to other slots
 		boolean minimumOneSuccessfulPush = false;
 		for (Player player :  pushedSchedule.slots.get(slotId).players.values()) {
+			if (player.isFrozen) {
+				continue;
+			}
 			// define reach of a push
 			boolean pushSuccessful = pushedSchedule.pushSinglePlayer(player.playerNr, slotId, pushLevel);
 			if (pushSuccessful) {
@@ -984,7 +1019,7 @@ public class Schedule {
 		
 		// build reference to exactly the slot and player to be pushed
 		Slot slot = this.slots.get(slotId);
-		Integer slotSize = slot.players.size();
+		Integer slotSize = slot.getSize();
 		
 		// try to push to potential other slots (put slots into a list that is shuffled for random order of attempting slots)
 		List<Integer> pushGroupSizeList = new ArrayList<Integer>();
@@ -1095,7 +1130,7 @@ public class Schedule {
 				continue;
 			}
 			// only push to groups with desired size
-			if (otherslot.players.size()!=pushGroupSize) {
+			if (otherslot.getSize()!=pushGroupSize) {
 				continue;
 			}
 			// do not push to same slot again!
@@ -1107,14 +1142,14 @@ public class Schedule {
 			if (!player.canMoveThisSlot2OtherSlot(slot, otherslot, workingSchedule)) {
 				continue;
 			}
-			if (otherslot.players.size() < 4) {
+			if (otherslot.getSize() < 4) {
 				if (otherslot.isCompatibleWithPlayer(player, false)) {
-					System.out.println("Receiver Slot Size ==> "+otherslot.players.size());
+					System.out.println("Receiver Slot Size ==> "+otherslot.getSize());
 					player.removeSelectedSlot(slot);
 					player.addSelectedSlot(otherslot);
 					slot.players.remove(player.playerNr);
 					otherslot.addPlayer(player.playerNr,player);
-					if (slot.players.size()==0) {
+					if (slot.getSize()==0) {
 						slot.category = "empty";
 					}
 					if (otherslot.category.equals("empty")) {
@@ -1125,7 +1160,7 @@ public class Schedule {
 					return true;
 				}
 			}
-			else if (otherslot.players.size() == 4) {
+			else if (otherslot.getSize() == 4) {
 				// if all other 4 players do not accept this player, it might be an option to kick out another player (-> push) before adding new player
 				// kick out obviously only possible if consecutive push is possible for the latter!
 				if (! player.isADesiredSlot(otherslot)) {
@@ -1159,7 +1194,7 @@ public class Schedule {
 					player.removeSelectedSlot(otherslot);
 					player.addSelectedSlot(slot);
 					otherslot.players.remove(player.playerNr);
-					if (otherslot.players.size()==0) {
+					if (otherslot.getSize()==0) {
 						otherslot.category = "empty";
 					}
 					slot.addPlayer(player.playerNr,player);
@@ -1183,7 +1218,7 @@ public class Schedule {
 			if (slot.isFrozen) {
 				continue;
 			}
-			if (slot.players.size() == groupSize) {
+			if (slot.getSize() == groupSize) {
 				// the following loop makes sure groups larger than already 3 players are only considered (-> see Version before 17h 26.02.2019)
 				// if they are TennisCross (TC, strength=20) groups with a maxGroupSize=8
 				// if a player is not a TC player, we do not consider this group above size 3 bc useless
@@ -1211,7 +1246,9 @@ public class Schedule {
 		// Make a reference to exactly the slot to be broken up in the copied schedule
 		// try to push all players individually to other slots
 		for (Player player :  pushedSchedule.slots.get(slotId).players.values()) {
-			
+			if (player.isFrozen) {
+				continue;
+			}
 			// a shift is nothing but a push with level=1 (see above commentary) this is nothing but the first push attempt
 			// define reach of a push
 			// need to mark a copy of the initial pusher slot for comparing potential final shifts and deciding whether pushes actually are an improvement
@@ -1271,10 +1308,10 @@ public class Schedule {
 			}
 			else {
 				if (methodCalledAfterPush) {
-					thisSlotSizeBeforePush = this.slots.get(slotId).players.size()-1;
+					thisSlotSizeBeforePush = this.slots.get(slotId).getSize()-1;
 				}
 				else {
-					thisSlotSizeBeforePush = this.slots.get(slotId).players.size();
+					thisSlotSizeBeforePush = this.slots.get(slotId).getSize();
 				}				
 			}
 			
@@ -1372,13 +1409,13 @@ public class Schedule {
 				continue;
 			}
 			// only push to groups with desired size
-			if (otherslot.players.size()!=pushGroupSize) {
+			if (otherslot.getSize()!=pushGroupSize) {
 				continue;
 			}
 //			System.out.println("Other slot has desired push group size = "+pushGroupSize);
 			if (playerHasNotYetBeenPlaced) {
 //				System.out.println("Checking if otherSlot accepts the new player (that has not yet been placed)");
-				if(!otherslot.acceptsPlayer(player, 2, allowOverfullGroups, workingSchedule)) {
+				if(!otherslot.acceptsPlayer(player, 2, allowOverfullGroups, workingSchedule, false)) {
 					continue;
 				}
 			}
@@ -1415,7 +1452,7 @@ public class Schedule {
 		// if a feasible slot has been found, shift the player to the optimal one and return
 		// if no feasible receiver slot has been found for a shift, the procedure for a push is initiated below
 		if (optimalReceiverSlot!=null) {
-			System.out.println("Receiver Slot Size ==> "+optimalReceiverSlot.players.size());
+			System.out.println("Receiver Slot Size ==> "+optimalReceiverSlot.getSize());
 			if (!playerHasNotYetBeenPlaced) {
 				slot.players.remove(player.playerNr);				
 			}
@@ -1428,7 +1465,7 @@ public class Schedule {
 				optimalReceiverSlot.category = player.category;
 			}
 			if (!playerHasNotYetBeenPlaced) {
-				if (slot.players.size()==0) {
+				if (slot.getSize()==0) {
 					slot.category = "empty";
 				}				
 			}
@@ -1455,7 +1492,7 @@ public class Schedule {
 				// only push to groups with minimum size
 				// -> Assume very low success likelihood to initiate push into a group smaller than sender group
 				//    as it has already been attempted to push those priorly!
-				if (otherslot.players.size() < pushGroupSize) {
+				if (otherslot.getSize() < pushGroupSize) {
 					continue;
 				}
 				// only shift or push into desired slots
@@ -1496,7 +1533,7 @@ public class Schedule {
 //									initialPusherSlotCopy, pushLevel-1, true, finalShiftMinGroupSize);							
 //						}
 //						else {
-//							for (finalShiftMinGroupSize=3; finalShiftMinGroupSize>=Math.min(initialPusherSlotCopy.players.size()-1,3); finalShiftMinGroupSize--) {							
+//							for (finalShiftMinGroupSize=3; finalShiftMinGroupSize>=Math.min(initialPusherSlotCopy.getSize()-1,3); finalShiftMinGroupSize--) {							
 //								pushSuccessful = workingSchedule.shiftAndPushSinglePlayer(playerToBeKickedOut.playerNr, otherslot.slotId,
 //														initialPusherSlotCopy, pushLevel-1, true, finalShiftMinGroupSize);
 //								if (pushSuccessful) {
@@ -1528,7 +1565,7 @@ public class Schedule {
 					if (!playerHasNotYetBeenPlaced) {
 						slot.addPlayer(player.playerNr,player);						
 					}
-					if (otherslot.players.size()==0) {
+					if (otherslot.getSize()==0) {
 						otherslot.category = "empty";
 					}
 				}
@@ -1544,10 +1581,10 @@ public class Schedule {
 		}
 		
 		// if receiver group is same size or larger, shift is always formally permitted (as long as other constraints in the calling method can be respected)
-		if (otherslot.players.size()>=slot.players.size()) {
+		if (otherslot.getSize()>=slot.getSize()) {
 			return true;
 		}
-		else if (otherslot.players.size()==slot.players.size()-1) {
+		else if (otherslot.getSize()==slot.getSize()-1) {
 			// shift to group one size smaller is formally permitted if:
 			//		a. if maxGSize(shifterPlayer)<maxGSize(average(receiverGroup)), shift if:
 			//			- sum(maxGSize(receiverGroup)) <= sum(maxGSize(senderGroup))
@@ -1588,7 +1625,7 @@ public class Schedule {
 			if (originalSlot.isFrozen) {
 				continue;
 			}
-			if (originalSlot.players.size() == groupSize) {
+			if (originalSlot.getSize() == groupSize) {
 				// -------------------------------------------------
 				// changes this (schedule) directly within method
 //				System.out.println("Attempting filling of slot: "+Slot.dayNr2Name(originalSlot .weekdayNr)+" "+originalSlot .time+"h Court"+originalSlot .courtNr);
@@ -1726,9 +1763,9 @@ public class Schedule {
 			if (otherslot.isSameTimeAndDay(slot)) {
 				continue;
 			}
-			if (otherslot.players.size() == pullSlotSize) {
+			if (otherslot.getSize() == pullSlotSize) {
 				for (Player player : otherslot.players.values()) {
-					if (slot.acceptsPlayer(player, 2, false, this)) {
+					if (slot.acceptsPlayer(player, 2, false, this, false)) {
 						Schedule initialBackupSchedule = this.clone();
 						slot.addPlayer(player.playerNr, player);
 						player.addSelectedSlot(slot);
@@ -1736,7 +1773,7 @@ public class Schedule {
 						player.removeSelectedSlot(otherslot);
 						if (pContinuePull < new Random().nextDouble()) {
 							Schedule pulledSchedule = this.clone();
-							boolean consecutivePullSuccessul = pulledSchedule.pullPlayers(otherslot.slotId, pullLevel-1, otherslot.players.size(), hardSuccessCondition);
+							boolean consecutivePullSuccessul = pulledSchedule.pullPlayers(otherslot.slotId, pullLevel-1, otherslot.getSize(), hardSuccessCondition);
 							if (consecutivePullSuccessul) {
 								this.copyFromSchedule(pulledSchedule);
 							}
@@ -1777,7 +1814,7 @@ public class Schedule {
 			groupSizeBins.put(i, 0);
 		}
 		for (Slot slot : this.slots.values()) {
-			int size = slot.players.size();
+			int size = slot.getSize();
 			if (size > 8) {
 				groupSizeBins.put(9,groupSizeBins.get(9)+1);
 			}
@@ -1818,7 +1855,7 @@ public class Schedule {
 //			groupEfficiencyBins.put(i, 0);
 //		}
 		for (Slot slot : this.slots.values()) {
-			int slotSize = slot.players.size();
+			int slotSize = slot.getSize();
 			int limitingMaxGroupSize = 8;
 			for (Player player : slot.players.values()) {
 				int maxGroupSizeOfPlayer = player.maxGroupSize;
@@ -1847,7 +1884,7 @@ public class Schedule {
 		// check how many slots have been used (where an actual lecture is held)
 		int nSlotsUsed = 0;
 		for (Slot slot : this.slots.values()) {
-			if (slot.players.size()>0) {
+			if (slot.getSize()>0) {
 				nSlotsUsed++;
 			}
 		}
@@ -1950,7 +1987,7 @@ public class Schedule {
 		System.out.println("Number of playerSlots by players:  "+totPlayerSlots);
 		int totSlotPlayers = 0;
 		for (Slot slot : this.slots.values()) {
-			totSlotPlayers += slot.players.size();
+			totSlotPlayers += slot.getSize();
 		}
 		System.out.println("Number of playerSlots by slots:  "+totSlotPlayers);
 	}

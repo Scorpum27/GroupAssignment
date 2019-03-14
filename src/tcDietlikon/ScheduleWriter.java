@@ -108,36 +108,36 @@ public class ScheduleWriter {
 //					XSSFColor efficiencyColor = new XSSFColor(new Color(255,255,255));
 					Color efficiencyColor = new Color(255,255,0);
 					if (slot.category.equals("TC")) {
-						if (Arrays.asList(7,8).contains(slot.players.size())) {
+						if (Arrays.asList(7,8).contains(slot.getSize())) {
 							efficiencyColor = new Color(0,128,0);		// green for very good usage of player tolerance
 						}
-						else if (Arrays.asList(5,6).contains(slot.players.size())){
+						else if (Arrays.asList(5,6).contains(slot.getSize())){
 							efficiencyColor = new Color(107,142,35);	// olive for good usage of player tolerance
 						}
-						else if (Arrays.asList(4).contains(slot.players.size())){
+						else if (Arrays.asList(4).contains(slot.getSize())){
 							efficiencyColor = new Color(154,205,50);	// light green for satisfying usage of player tolerance
 						}
-						else if (Arrays.asList(2,3).contains(slot.players.size())){
+						else if (Arrays.asList(2,3).contains(slot.getSize())){
 							efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
 						}
-						else if (Arrays.asList(1).contains(slot.players.size())){
+						else if (Arrays.asList(1).contains(slot.getSize())){
 							efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
 						}
 					}
 					else {
-						if (slot.players.size() > player.maxGroupSize) {
+						if (slot.getSize() > player.maxGroupSize) {
 							efficiencyColor = new Color(32,178,170);	// blue for too full groups
 						}
-						else if (slot.players.size()==player.maxGroupSize) {
+						else if (slot.getSize()==player.maxGroupSize) {
 							efficiencyColor = new Color(0,128,0);
 						}
-						else if (slot.players.size()==player.maxGroupSize-1){
+						else if (slot.getSize()==player.maxGroupSize-1){
 							efficiencyColor = new Color(154,205,50);	// light green for good usage of player tolerance
 						}
-						else if (slot.players.size()==player.maxGroupSize-2){
+						else if (slot.getSize()==player.maxGroupSize-2){
 							efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
 						}
-						else if (slot.players.size()<=player.maxGroupSize-3){
+						else if (slot.getSize()<=player.maxGroupSize-3){
 							efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
 						}						
 					}
@@ -171,7 +171,12 @@ public class ScheduleWriter {
 		for (Player player : this.schedule.players.values()) {
 			int nUnsatisfiedSlots = player.nSlots-player.selectedSlots.size();
 			if (nUnsatisfiedSlots>0) {
-				rrow = sheet.getRow(rr);
+				if (sheet.getLastRowNum()<rr) {
+					rrow = sheet.createRow(rr);
+				}
+				else {
+					rrow = sheet.getRow(rr);					
+				}
 				nameCell = rrow.createCell(col+2);
 				nameCell.setCellValue(player.age + " - " + player.name);
 				nameCell.setCellStyle(undesiredSlotStyle);
@@ -188,7 +193,13 @@ public class ScheduleWriter {
 				rr++;
 				for (int n=1; n<=nUnsatisfiedSlots; n++) {
 					for (Slot slot : player.desiredSlots) {
-						Row slotRow = sheet.getRow(rr);
+						Row slotRow;
+						if (sheet.getLastRowNum()<rr) {
+							slotRow = sheet.createRow(rr);
+						}
+						else {
+							slotRow = sheet.getRow(rr);							
+						}
 						Cell dayCell = slotRow.createCell(col);
 						dayCell.setCellValue(Slot.dayNr2Name(slot.weekdayNr));
 						Cell timeCell = slotRow.createCell(col+1);
@@ -292,12 +303,12 @@ public class ScheduleWriter {
 			for (int currentSlotSize=player.maxGroupSize-1; currentSlotSize>=1; currentSlotSize--) {
 				slotLoop:
 				for (Slot slot : this.schedule.slots.values()) {
-					if (player.maxGroupSize < slot.players.size() + 1) {
+					if (player.maxGroupSize < slot.getSize() + 1) {
 						continue;
 					}
 					for (Player otherPlayer : slot.players.values()) {
 						if (!player.isCompatibleWithOtherPlayer(otherPlayer)
-								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+								|| otherPlayer.maxGroupSize < slot.getSize() + 1) {
 							continue slotLoop;
 						}
 
@@ -320,7 +331,7 @@ public class ScheduleWriter {
 					if (!player.isADesiredSlot(slot)) {
 						continue;
 					}
-					if (player.maxGroupSize < slot.players.size() + 1) {
+					if (player.maxGroupSize < slot.getSize() + 1) {
 						continue;
 					}
 					for (Player otherPlayer : slot.players.values()) {
@@ -330,7 +341,7 @@ public class ScheduleWriter {
 						if (ageDiff > player.maxAgeDiff + 2 || ageDiff > otherPlayer.maxAgeDiff + 2
 								|| classDiff > player.maxClassDiff || classDiff > otherPlayer.maxClassDiff
 								|| player.playerNr == otherPlayer.playerNr
-								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+								|| otherPlayer.maxGroupSize < slot.getSize() + 1) {
 							continue slotLoop;
 						}
 					}
@@ -355,12 +366,12 @@ public class ScheduleWriter {
 			for (int currentSlotSize=player.maxGroupSize-1; currentSlotSize>=1; currentSlotSize--) {
 				slotLoop:
 				for (Slot slot : this.schedule.slots.values()) {
-					if (player.maxGroupSize < slot.players.size() + 1) {
+					if (player.maxGroupSize < slot.getSize() + 1) {
 						continue;
 					}
 					for (Player otherPlayer : slot.players.values()) {
 						if (!player.isCompatibleWithOtherPlayer(otherPlayer)
-								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+								|| otherPlayer.maxGroupSize < slot.getSize() + 1) {
 							continue slotLoop;
 						}
 
@@ -383,7 +394,7 @@ public class ScheduleWriter {
 					if (!player.isADesiredSlot(slot)) {
 						continue;
 					}
-					if (player.maxGroupSize < slot.players.size() + 1) {
+					if (player.maxGroupSize < slot.getSize() + 1) {
 						continue;
 					}
 					for (Player otherPlayer : slot.players.values()) {
@@ -393,7 +404,7 @@ public class ScheduleWriter {
 						if (ageDiff > player.maxAgeDiff + 2 || ageDiff > otherPlayer.maxAgeDiff + 2
 								|| classDiff > player.maxClassDiff || classDiff > otherPlayer.maxClassDiff
 								|| player.playerNr == otherPlayer.playerNr
-								|| otherPlayer.maxGroupSize < slot.players.size() + 1) {
+								|| otherPlayer.maxGroupSize < slot.getSize() + 1) {
 							continue slotLoop;
 						}
 					}
@@ -439,7 +450,7 @@ public class ScheduleWriter {
 		chapterTitleCell.setCellValue(chapterTitle);
 		chapterTitleCell.setCellStyle(chapterCellStyle);
 		refRowNr++;
-		if (notEnoughSlotsPlayers.size()==0) {
+		if (PlayerUtils.getNumberOfIndividualPlayersFromPlayerList(notEnoughSlotsPlayers)==0) {
 			Cell m1 = rows.get(refRowNr).createCell(0);
 			Cell m2 = rows.get(refRowNr).createCell(1);
 			m1.setCellValue("keine");
@@ -465,7 +476,7 @@ public class ScheduleWriter {
 		chapterTitleCell.setCellValue(chapterTitle);
 		chapterTitleCell.setCellStyle(chapterCellStyle);
 		refRowNr++;
-		if (undesirablyPlacedPlayers.size()==0) {
+		if (PlayerUtils.getNumberOfIndividualPlayersFromPlayerList(undesirablyPlacedPlayers)==0) {
 			Cell m1 = rows.get(refRowNr).createCell(0);
 			Cell m2 = rows.get(refRowNr).createCell(1);
 			m1.setCellValue("keine");
@@ -708,7 +719,7 @@ public class ScheduleWriter {
 		else {
 			for (Slot slot : player.selectedSlots) {
 				String training = Slot.dayNr2Name(slot.weekdayNr) + " - " + slot.time + "h - Court " + slot.courtNr
-						+ " - G" + slot.players.size();
+						+ " - G" + slot.getSize();
 				String remark = "";
 				if (category == 1) { // undesired player category
 					remark = "Unerwünschter Slot";
@@ -777,7 +788,7 @@ public class ScheduleWriter {
 			else {
 				for (Entry<Slot,String> entry : player.postProposedSlots.entrySet()) {
 					Slot slot = entry.getKey();
-					String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.players.size();
+					String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.getSize();
 					String remark = entry.getValue();
 					Cell slotCell = rows.get(refRowNr).createCell(0);
 					Cell remarkCell = rows.get(refRowNr).createCell(1);
