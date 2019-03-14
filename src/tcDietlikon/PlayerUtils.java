@@ -427,14 +427,7 @@ public class PlayerUtils {
 //        		}
 
         		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize, category, maxAgeDiff, maxClassDiff, true);
-        		// it can be that the same person is featured twice in the initial player list as they register e.g. for private and group lessons
-        		// --> mark the same person profiles so that one profile knows when the other one plays and does not make double day assignments
-        		for (Player loadedPlayer : players.values()) {
-        			if (newPlayer.name.equals(loadedPlayer.name)) {
-        				loadedPlayer.samePersonPlayerProfiles.add(playerNr);
-        				newPlayer.samePersonPlayerProfiles.add(loadedPlayer.playerNr);
-        			}
-        		}
+
         		if (considerMustHavePeerWishes && mustHavePeers.length>0) {
         			for (String mustHavePeerName : mustHavePeers) {
         				// make sure not to add spaces from the comma separation in the excel file e.g. in front of Sascha Mark in Cyrill Keller, Sascha Mark
@@ -586,7 +579,7 @@ public class PlayerUtils {
                 	// not an actual player but only confines a player union
                 	// --> else, a new physical player would be created with a name formed of a combination of its merger players
                 	Player mergedPlayer = new Player(mergedName, mergedPlayerNr, averageAgeRounded, averageStrengthRounded,
-                			minSlots, highestMaxGroupSize, category,lowestMaxAgeDiff, lowestMaxClassDiff, false);
+                			minSlots, highestMaxGroupSize, category, lowestMaxAgeDiff, lowestMaxClassDiff, false);
                 	// fit merged player with only the mutual desired slots from its individual merger players
                 	// add all desired slots from first merger player and remove any of the slots if they are not explicitly featured in all other players
                 	List<Slot> mutuallyDesiredSlots = new ArrayList<Slot>();

@@ -141,8 +141,11 @@ public class Schedule {
 		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(schedule.players);
 		// load fixed groups and courts into a list of fixed slots
 		if (useFixedSlotFile) {
-			schedule.setFixedSlotsAndPlayers(players,fixedGroupsFile); 
+			schedule.setFixedSlotsAndPlayers(fixedGroupsFile); 
 		}
+		// it can be that the same person is featured twice in the initial player list as they register e.g. for private and group lessons
+		// --> mark the same person profiles so that one profile knows when the other one plays and does not make double day assignments
+		schedule.makeSamePlayersReferences();
 		
 		
 	// try initial placement of directly filling a min. number of players in the same slot (for a min. number always start filling least demanded slot)
@@ -260,6 +263,23 @@ public class Schedule {
 		return schedule;
 	}
 	
+	private void makeSamePlayersReferences() {
+		// it can be that the same person is featured twice in the initial player list as they register e.g. for private and group lessons
+		// --> mark the same person profiles so that one profile knows when the other one plays and does not make double day assignments
+		for (Player player : players.values()) {
+			for (Player subPlayer : player.subPlayerProfiles) {
+				for (Player otherPlayer : players.values()) {
+					for (Player otherSubPlayer : otherPlayer.subPlayerProfiles) {
+						if (otherSubPlayer.name.equals(subPlayer.name)) {
+							subPlayer.samePersonPlayerProfiles.add(otherSubPlayer.playerNr);
+							// add only for this player --> this way can avoid double adding when same player combo is hit by switching inner and outer loop
+						}
+					}
+				}				
+			}
+		}
+	}
+
 	public void markSlotsWithDesirablePlayers(Map<Integer, Player> players) {
 		for (Slot slot : this.slots.values()) {
 			for (Player player : players.values()) {
@@ -280,10 +300,11 @@ public class Schedule {
 			for (Slot slot : player.desiredSlots) {
 				int slotId = tempSchedule.dayTimeCourt2slotId(slot.weekdayNr, slot.time, 1);
 				if (slotFrequencies.containsKey(slotId)) {
-					slotFrequencies.put(slotId, slotFrequencies.get(slotId)+1);
+					slotFrequencies.put(slotId, slotFrequencies.get(slotId)+player.subPlayerProfiles.size());
+					// add not just one for frequency, but amount of subprofiles attached to this player
 				}
 				else {
-					slotFrequencies.put(slotId, 1);
+					slotFrequencies.put(slotId, player.subPlayerProfiles.size());
 				}
 			}
 		}
@@ -338,18 +359,15 @@ public class Schedule {
 		return sortedSlots;
 	}
 
-	private void setFixedSlotsAndPlayers(Map<Integer, Player> players, String fixedGroupsFile) throws EncryptedDocumentException, InvalidFormatException, IOException {
-		// --> go through slots and put the player in the corresponding slot of the schedule; mark the slot as blocked for any other action
-		// mark the players with the corresponding slots and make sure they are blocked (should be as it is by reference)
+	private void setFixedSlotsAndPlayers(String fixedGroupsFile) throws EncryptedDocumentException, InvalidFormatException, IOException {
+		
+		// FOR OLD VERSION SEE BEFORE 14.03.2019 (GitHub)
 		
 		// load court schedules from excel file
 		Workbook workbook = WorkbookFactory.create(new File(fixedGroupsFile));
 		Sheet fixedSlotsSheet = workbook.getSheetAt(0);
 		DataFormatter dataFormatter = new DataFormatter();
 
-		List<Player> fixedPlayerList = new ArrayList<Player>();
-		List<Slot> fixedSlotList = new ArrayList<Slot>();
-		
 		// LOAD
 		for (int r = 1; r <= fixedSlotsSheet.getLastRowNum(); r++) {
 			if (!dataFormatter.formatCellValue(fixedSlotsSheet.getRow(r).getCell(0)).equals("")) {
@@ -357,107 +375,47 @@ public class Schedule {
 				int day = Integer.parseInt(dataFormatter.formatCellValue(fixedSlotsSheet.getRow(r).getCell(0)));
 				int time = Integer.parseInt(dataFormatter.formatCellValue(fixedSlotsSheet.getRow(r).getCell(1)));
 				int court = Integer.parseInt(dataFormatter.formatCellValue(fixedSlotsSheet.getRow(r).getCell(2)));
-				Slot slot = null;
-				boolean slotAlreadyFixedSlot = false;
-				// check if already featured in fixedPlayerList
-				for (Slot fixedSlot : fixedSlotList) {
-					if (fixedSlot.weekdayNr==day && fixedSlot.time==time && fixedSlot.courtNr==court) {
-						slot = fixedSlot;
-						slotAlreadyFixedSlot = true;
-						break;
-					}
-				}
-				if (!slotAlreadyFixedSlot) {
-					slot = new Slot(day, time, court);
-				}
-				fixedSlotList.add(slot);
+				Slot slot = this.slots.get(this.dayTimeCourt2slotId(day, time, court));
 				slot.isFrozen = true;
 				// System.out.println("Adding frozen slot "+slot.weekdayNr+" "+slot.time+" "+slot.courtNr);
 				
-				// now go through all players placed in this fixed slot
+				// now go through all players placed in this fixed slot and add them as a player union!
+				List<Player> thisFixedSlotPlayerUnion = new ArrayList<Player>();
 				for (int rp = r; rp <= fixedSlotsSheet.getLastRowNum(); rp++) {
-					// after the first player in the slot (rp>r) go down players for this slot. stop when new slot starts
+					// after the first player in the slot (rp>r) go down players for this slot. stop when new slot starts and therefore player cell is empty
 					if (rp>r && !dataFormatter.formatCellValue(fixedSlotsSheet.getRow(rp).getCell(0)).equals("")) {
 						break;
 					}
 					else {
-						Player fixedPlayer = null;
 						String fixedPlayerName = dataFormatter.formatCellValue(fixedSlotsSheet.getRow(rp).getCell(3));
-						// check if already featured in fixedPlayerList
-						boolean playerAlreadyRegistered = false;
-						for (Player player : fixedPlayerList) {
-							if (player.name.equals(fixedPlayerName)) {
-								playerAlreadyRegistered = true;
-								fixedPlayer = player;
-								break;
-							}
-						}
-						if (!playerAlreadyRegistered) {
-							fixedPlayer = new Player(fixedPlayerName, true);
-							fixedPlayer.playerNr = rp;
-						}
-						fixedPlayer.nSlots+=1;
-						fixedPlayer.selectedSlots.add(slot);
-						fixedPlayerList.add(fixedPlayer);
+						Player fixedPlayer = new Player(fixedPlayerName, false); // does not need reference to itself as will be placed in union as subplayer
+						fixedPlayer.playerNr = rp;
+						fixedPlayer.nSlots=1;
+						// no need to add slot to desired/selectedSlots as it is added to the mergedPlayer below
+						// fixedPlayer.desiredSlots.add(slot);	
+						// fixedPlayer.selectedSlots.add(slot);
+						fixedPlayer.isFrozen = true;
+						thisFixedSlotPlayerUnion.add(fixedPlayer);
 						// System.out.println("Adding player "+fixedPlayer.name+" "+fixedPlayer.playerNr);
-						slot.addPlayer(rp, fixedPlayer);
 					}
 				}
+				Player mergedPlayer = new Player(false);
+				for (Player subPlayer : thisFixedSlotPlayerUnion) {
+					mergedPlayer.subPlayerProfiles.add(subPlayer);
+					subPlayer.maxGroupSize = thisFixedSlotPlayerUnion.size();
+				}
+				mergedPlayer.desiredSlots.add(slot);
+				mergedPlayer.addSelectedSlot(slot);
+				mergedPlayer.setNameFromSubprofiles();
+				mergedPlayer.playerNr = PlayerUtils.searchHighestPlayerNr(players)+1;
+				mergedPlayer.nSlots = 1;
+				mergedPlayer.maxGroupSize = thisFixedSlotPlayerUnion.size();
+				mergedPlayer.isFrozen = true;
+				slot.addPlayer(mergedPlayer.playerNr, mergedPlayer);
+				this.players.put(mergedPlayer.playerNr, mergedPlayer);
 			}
 			else {
 				continue;
-			}
-		}
-		for (Slot fixedSlot : fixedSlotList) {
-			for (Player player : fixedSlot.players.values()) {
-				player.maxGroupSize = Math.max(fixedSlot.getSize(), player.maxGroupSize);
-			}
-		}
-		
-		
-		// SYNC
-		// go through players and check if already features a player with same name
-		for (Player fixedPlayer : fixedPlayerList) {
-			boolean playerAlreadyRegistered = false;
-			for (Player player : players.values()) {
-				if (player.name.equals(fixedPlayer.name)) {
-					// if yes, sync with fixed player (add selectedSlots)
-					playerAlreadyRegistered = true;
-					for (Slot fixedSlot : fixedPlayer.selectedSlots) {
-						Slot officialScheduleSlot = this.slots.get(this.dayTimeCourt2slotId(fixedSlot.weekdayNr, fixedSlot.time, fixedSlot.courtNr));
-						player.selectedSlots.add(officialScheduleSlot);
-						player.desiredSlots.add(officialScheduleSlot);
-					}
-					fixedPlayer = player;
-					break;
-				}
-			}
-			// if no, just add a new player to the players group as a clone of the fixed player --> then point fixedPlayer to new player!!
-			if (!playerAlreadyRegistered) {
-				Player newPlayer = new Player(fixedPlayer.name, true);
-				newPlayer.playerNr = PlayerUtils.searchHighestPlayerNr(players)+1;
-				newPlayer.maxGroupSize = fixedPlayer.maxGroupSize;
-				newPlayer.nSlots = fixedPlayer.nSlots;
-				newPlayer.maxAgeDiff = fixedPlayer.maxAgeDiff;
-				newPlayer.maxClassDiff = fixedPlayer.maxClassDiff;
-				players.put(newPlayer.playerNr, newPlayer);
-				for (Slot fixedSlot : fixedPlayer.selectedSlots) {
-					Slot officialScheduleSlot = this.slots.get(this.dayTimeCourt2slotId(fixedSlot.weekdayNr, fixedSlot.time, fixedSlot.courtNr));
-					newPlayer.selectedSlots.add(officialScheduleSlot);
-					newPlayer.desiredSlots.add(officialScheduleSlot);
-				}
-				fixedPlayer = newPlayer;
-			}
-		}
-		
-		// go through slots
-		for (Slot fixedSlot : fixedSlotList) {
-			Slot officialScheduleSlot = this.slots.get(this.dayTimeCourt2slotId(fixedSlot.weekdayNr, fixedSlot.time, fixedSlot.courtNr));
-			// set as frozenSlot and add players, which are now pointing to the new players in the players set!
-			officialScheduleSlot.isFrozen = true;
-			for (Player player : fixedSlot.players.values()) {
-				officialScheduleSlot.addPlayer(player.playerNr, player);
-				player.isFrozen = true;
 			}
 		}
 	}
@@ -576,10 +534,10 @@ public class Schedule {
 				currentlyOptimalSlot.addPlayer(player.playerNr, player);
 				player.addSelectedSlot(currentlyOptimalSlot);
 				if (strategy>player.worstPlacementRound) {
-					player.worstPlacementRound = strategy;					
+					player.setWorstPlacementRound(strategy);
 				}
 				if (strategy>2) {
-					player.undesirablePlacements.add(currentlyOptimalSlot);
+					player.addUndesirablePlacement(currentlyOptimalSlot);
 				}
 				// if player has mustHavePeers, set to frozen and do all addings for the must have peers!
 				if (player.frozenSameGroupPeers.size() > 0) {
@@ -590,10 +548,10 @@ public class Schedule {
 						currentlyOptimalSlot.addPlayer(mustHavePeer.playerNr, mustHavePeer);
 						mustHavePeer.addSelectedSlot(currentlyOptimalSlot);
 						if (strategy>mustHavePeer.worstPlacementRound) {
-							mustHavePeer.worstPlacementRound = strategy;					
+							mustHavePeer.setWorstPlacementRound(strategy);				
 						}
 						if (strategy>2) {
-							mustHavePeer.undesirablePlacements.add(currentlyOptimalSlot);
+							mustHavePeer.addUndesirablePlacement(currentlyOptimalSlot);
 						}
 					}					
 				}
@@ -1982,8 +1940,8 @@ public class Schedule {
 		System.out.println("unsatisfiedTrainingFrequencyBins:  "+unsatisfiedTrainingFrequencyBins.toString());
 		
 		int totPlayerSlots = 0;
-		for (Player player : PlayerUtils.makeSubplayerListFromPlayersMap(this.players)) {
-			totPlayerSlots += player.selectedSlots.size();
+		for (Player player : this.players.values()) {
+			totPlayerSlots += player.selectedSlots.size()*player.subPlayerProfiles.size();				
 		}
 		System.out.println("Number of playerSlots by players:  "+totPlayerSlots);
 		int totSlotPlayers = 0;

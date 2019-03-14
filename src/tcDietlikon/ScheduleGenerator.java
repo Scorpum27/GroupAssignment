@@ -73,7 +73,7 @@ public class ScheduleGenerator {
 	
 		int pushLevel = 5;
 		boolean createNewPlayerSet = false;
-		boolean useFixedSlotFile = false;
+		boolean useFixedSlotFile = true;
 		int initialPlacementStrategy = 2;
 		boolean doNotLoadSelectedSlots = true;
 		boolean loadPlayers = true;

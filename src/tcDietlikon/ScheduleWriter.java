@@ -36,6 +36,7 @@ public class ScheduleWriter {
 	XSSFCellStyle whiteCellStyle;
 	XSSFCellStyle undesiredSlotStyle;
 	XSSFCellStyle slotTitleCellStyle;
+	XSSFCellStyle fixedSlotCellStyle;
 	CellStyle headerCellStyle;
 	CellStyle headerCellStyle2;
 	CellStyle leftAlignCellStyle;
@@ -118,6 +119,7 @@ public class ScheduleWriter {
 					// make sure to mark undesirable slots!
 					if (slot.isFrozen) {
 						nameCell.setCellValue("(**) "+player.name + " (" + player.linkablePlayers.size() + ")");
+						nameCell.setCellStyle(fixedSlotCellStyle);
 					}				
 					else if (!player.isADesiredSlot(slot)) {
 						nameCell.setCellStyle(undesiredSlotStyle);
@@ -472,7 +474,7 @@ public class ScheduleWriter {
 		this.loadStylesAndWorkbook(workbook);
 		XSSFSheet sheet = this.defaultWorkbook.createSheet("PlayerOverview");
 		List<Row> rows = new ArrayList<Row>();
-		for (int r=0; r<=5000; r++) {
+		for (int r=0; r<=20000; r++) {
 			rows.add(sheet.createRow(r));
 		}
 		int refRowNr = 0;
@@ -633,6 +635,13 @@ public class ScheduleWriter {
 		nSlotsXCellStyle.setFillBackgroundColor(nSlotsXCellColor);
 		nSlotsXCellStyle.setFillForegroundColor(nSlotsXCellColor);
 		nSlotsXCellStyle.setAlignment(HorizontalAlignment.LEFT);
+		
+		this.fixedSlotCellStyle = defaultWorkbook.createCellStyle();
+		fixedSlotCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		XSSFColor fixedSlotCellColor = new XSSFColor(new Color(0,128,0));
+		fixedSlotCellStyle.setFillBackgroundColor(fixedSlotCellColor);
+		fixedSlotCellStyle.setFillForegroundColor(fixedSlotCellColor);
+		fixedSlotCellStyle.setAlignment(HorizontalAlignment.LEFT);
 		
 		Font sectionTitleFont = defaultWorkbook.createFont();
 		sectionTitleFont.setBold(true);

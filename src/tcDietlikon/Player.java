@@ -1,6 +1,7 @@
 package tcDietlikon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -139,12 +140,7 @@ public class Player {
 	}
 	
 	public int getSize() {
-		if (this.subPlayerProfiles.size()==0) {
-			return 1;	// does not have subProfiles and is therefore a single player
-		}
-		else {
-			return this.subPlayerProfiles.size();	// has several subProfiles and therefore carries and places more than one player at the time
-		}
+		return this.subPlayerProfiles.size();	// has several subProfiles and therefore carries and places more than one player at the time
 	}
 
 	public boolean isADesiredSlot(Slot timeslot) {
@@ -161,19 +157,41 @@ public class Player {
 			System.out.println("CAUTION: Player did not allow slot removal as the player is frozen.");
 			return false;
 		}
-		Iterator<Slot> slotIter = this.selectedSlots.iterator();
-		while (slotIter.hasNext()) {
-			Slot slot = slotIter.next();
+		boolean allProfileRemovalsSuccessful = true;
+		boolean mainProfileRemovalSuccessful = false;
+		Iterator<Slot> slotIterMainProfile = this.selectedSlots.iterator();
+		while (slotIterMainProfile.hasNext()) {
+			Slot slot = slotIterMainProfile.next();
 			if (slot.isSameTimeAndDay(xSlot)) {				
-				slotIter.remove();
-				return true;
+				slotIterMainProfile.remove();
+				mainProfileRemovalSuccessful = true;
+				break;
 			}
 		}
-		return false;
+		if (!mainProfileRemovalSuccessful) {
+			allProfileRemovalsSuccessful = false;
+		}
+//		subplayerLoop:
+//		for (Player subplayer : this.subPlayerProfiles) {
+//			Iterator<Slot> slotIter = subplayer.selectedSlots.iterator();
+//			while (slotIter.hasNext()) {
+//				Slot slot = slotIter.next();
+//				if (slot.isSameTimeAndDay(xSlot)) {				
+//					slotIter.remove();
+//					continue subplayerLoop;
+//				}
+//			}
+//			// if code has arrived here, no slot could be remove for this subplayer!
+//			allProfileRemovalsSuccessful = false;
+//		}
+		return allProfileRemovalsSuccessful;
 	}
 	
 	public void addSelectedSlot(Slot xSlot) {
 		this.selectedSlots.add(xSlot);
+//		for (Player subplayer : this.subPlayerProfiles) {
+//			subplayer.selectedSlots.add(xSlot);
+//		}
 	}
 
 	// method to check if player can be moved from thisSlot to otherSlot
@@ -272,6 +290,118 @@ public class Player {
 		}
 		return subprofileNrList;
 	}
+
 	
+	public void setClassFromSubprofiles() {
+		double averageClass = 0.0;
+		for (Player subplayer : this.subPlayerProfiles) {
+    		averageClass += 1.0*subplayer.strength/this.subPlayerProfiles.size();
+		}
+		this.strength = (int) Math.round(averageClass);
+	}
+	
+	
+	public void setAgeFromSubprofiles() {
+		double averageAge = 0.0;
+		for (Player subplayer : this.subPlayerProfiles) {
+    		averageAge += 1.0*subplayer.age/this.subPlayerProfiles.size();
+		}
+		this.age = (int) Math.round(averageAge);
+	}
+	
+	
+	public void setCategoryFromSubprofiles() {
+		String cat = "";
+		for (Player subplayer : this.subPlayerProfiles) {
+			if (subplayer.category.equals("default")) {
+				cat = "default";
+    		}
+    		else if (Arrays.asList("R","O","G").contains(subplayer.category)) {
+    			if (!category.equals("default")) {
+    				cat = subplayer.category;
+    			}
+    		}
+    		else if (subplayer.category.equals("TC")) {
+    			if (!Arrays.asList("default","R","O","G").contains(cat)) {
+    				cat = "TC";
+    			}
+    		}
+    		else {
+    			System.out.println("This player has unknown category --> may jeopardize setting known category for merged group (PlayerUtils)");
+    		}
+		}
+		this.category = cat;
+	}
+	
+	
+	public void setNameFromSubprofiles() {
+		String mergedName = "";
+		for (Player player : this.subPlayerProfiles) {
+			mergedName += (player.name+"/");			
+		}
+		// have to remove last "/" from the concatenated name
+		mergedName = mergedName.substring(0, mergedName.length()-1);
+		this.name = mergedName;
+	}
+	
+	
+	public void setMinNSlotsFromSubprofiles() {
+		int minSlots = Integer.MAX_VALUE;
+		for (Player player : this.subPlayerProfiles) {
+			if (player.nSlots<minSlots) {
+				minSlots = player.nSlots;
+			}
+		}			
+		this.nSlots = minSlots;
+	}
+
+	
+	public void setMaxGroupSizeFromSubprofiles() {
+    	int highestMaxGroupSize = 0;
+		for (Player player : this.subPlayerProfiles) {
+    		if (player.maxGroupSize>highestMaxGroupSize) {
+    			highestMaxGroupSize = player.maxGroupSize;
+    		}
+		}
+		this.maxGroupSize = highestMaxGroupSize;
+	}
+
+
+	public void setMaxClassDiffFromSubprofiles() {
+		int lowestMaxClassDiff = Integer.MAX_VALUE;
+		for (Player player : this.subPlayerProfiles) {
+			if (player.maxClassDiff<lowestMaxClassDiff) {
+				lowestMaxClassDiff = player.maxClassDiff;
+			}
+		}
+		this.maxClassDiff = lowestMaxClassDiff;
+	}
+
+	
+	public void setMaxAgeDiffFromSubprofiles() {
+		int lowestMaxAgeDiff = Integer.MAX_VALUE;		
+		for (Player player : this.subPlayerProfiles) {
+			if (player.maxAgeDiff<lowestMaxAgeDiff) {
+				lowestMaxAgeDiff = player.maxAgeDiff;
+			}
+		}			
+		this.maxAgeDiff = lowestMaxAgeDiff;		
+	}
+
+	public void setWorstPlacementRound(int strategy) {
+		this.worstPlacementRound = strategy;
+		for (Player subplayer : this.subPlayerProfiles) {
+			subplayer.worstPlacementRound = strategy;
+		}
+	}
+
+	public void addUndesirablePlacement(Slot currentlyOptimalSlot) {
+		this.undesirablePlacements.add(currentlyOptimalSlot);
+		for (Player subplayer : this.subPlayerProfiles) {
+			subplayer.undesirablePlacements.add(currentlyOptimalSlot);
+		}
+		
+	}
+		
 }
 
