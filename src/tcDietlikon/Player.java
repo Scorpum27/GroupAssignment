@@ -36,7 +36,7 @@ public class Player {
 	Map<Slot,String> postProposedSlots = new HashMap<Slot,String>();
 	
 	public Player clone() {
-		Player copy = new Player();
+		Player copy = new Player(false);
 		copy.name = this.name;
 		copy.playerNr = this.playerNr;
 		copy.notes = this.notes;
@@ -81,21 +81,25 @@ public class Player {
 		return copy;
 	}
 	
-	public Player(){
-		this.desiredSlots = new ArrayList<Slot>();
-		this.selectedSlots = new ArrayList<Slot>();
-		this.linkablePlayers = new ArrayList<Integer>();
-		this.undesirablePlacements = new ArrayList<Slot>();
+	public Player(boolean addItselfAsSubPlayerProfiles){
+		if (addItselfAsSubPlayerProfiles) {
+			this.subPlayerProfiles.add(this);			
+		}
 	}
 
-	public Player(String name){
+	public Player(String name, boolean addItselfAsSubPlayerProfiles){
 		this.desiredSlots = new ArrayList<Slot>();
 		this.selectedSlots = new ArrayList<Slot>();
 		this.linkablePlayers = new ArrayList<Integer>();
 		this.undesirablePlacements = new ArrayList<Slot>();
 		this.name = name;
+		// NOTE: super important that pointing to itself as subplayer profile must come at the very end
+		// because if not a pointer is used, but a clone, one can make sure that all other constructor parameters have priorly been set and copied to the clone
+		if (addItselfAsSubPlayerProfiles) {
+			this.subPlayerProfiles.add(this);			
+		}		
 	}
-	public Player(String name, Integer playerNr, Integer age, Integer strength, Integer nSlots, Integer maxGroupSize) {
+	public Player(String name, Integer playerNr, Integer age, Integer strength, Integer nSlots, Integer maxGroupSize, boolean addItselfAsSubPlayerProfiles) {
 		this.name = name;
 		this.playerNr = playerNr;
 		this.age = age;
@@ -106,19 +110,32 @@ public class Player {
 		this.selectedSlots = new ArrayList<Slot>();
 		this.linkablePlayers = new ArrayList<Integer>();
 		this.undesirablePlacements = new ArrayList<Slot>();
+		// NOTE: super important that pointing to itself as subplayer profile must come at the very end
+		// because if not a pointer is used, but a clone, one can make sure that all other constructor parameters have priorly been set and copied to the clone
+		if (addItselfAsSubPlayerProfiles) {
+			this.subPlayerProfiles.add(this);			
+		}
 	}
-	public Player(String name, Integer playerNr, Integer age, Integer strength, Integer nSlots, Integer maxGroupSize, String category) {
+	public Player(String name, Integer playerNr, Integer age, Integer strength, Integer nSlots, Integer maxGroupSize, String category,
+			Integer maxAgeDiff, Integer maxClassDiff, boolean addItselfAsSubPlayerProfiles) {
 		this.name = name;
 		this.playerNr = playerNr;
 		this.age = age;
 		this.strength = strength;
 		this.nSlots = nSlots;
 		this.maxGroupSize = maxGroupSize;
+		this.maxAgeDiff = maxAgeDiff;
+		this.maxClassDiff = maxClassDiff;
 		this.category = category;
 		this.desiredSlots = new ArrayList<Slot>();
 		this.selectedSlots = new ArrayList<Slot>();
 		this.linkablePlayers = new ArrayList<Integer>();
 		this.undesirablePlacements = new ArrayList<Slot>();
+		// NOTE: super important that pointing to itself as subplayer profile must come at the very end
+		// because if not a pointer is used, but a clone, one can make sure that all other constructor parameters have priorly been set and copied to the clone
+		if (addItselfAsSubPlayerProfiles) {
+			this.subPlayerProfiles.add(this);			
+		}
 	}
 	
 	public int getSize() {
@@ -246,6 +263,14 @@ public class Player {
 		else {
 			return "??";
 		}
+	}
+
+	public List<Integer> subplayerNrList() {
+		List<Integer> subprofileNrList = new ArrayList<Integer>();
+		for (Player subprofile : this.subPlayerProfiles) {
+			subprofileNrList.add(subprofile.playerNr);
+		}
+		return subprofileNrList;
 	}
 	
 }

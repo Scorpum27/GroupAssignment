@@ -242,6 +242,9 @@ public class Schedule {
 					unsuccessfulPlacements += nSlotsStillNotYetAssigned;
 					// System.out.println("Number of unsuccessful placements = " + unsuccessfulPlacements);
 					player.slotNrSatisfied = false;
+					for (Player subplayer : player.subPlayerProfiles) {
+						subplayer.slotNrSatisfied = false;
+					}
 				}
 //				if (unsuccessfulPlacements > 0) {
 //					unsuccessfulPlacements += unsuccessfulPlacementsThisPlayer;
@@ -390,7 +393,7 @@ public class Schedule {
 							}
 						}
 						if (!playerAlreadyRegistered) {
-							fixedPlayer = new Player(fixedPlayerName);
+							fixedPlayer = new Player(fixedPlayerName, true);
 							fixedPlayer.playerNr = rp;
 						}
 						fixedPlayer.nSlots+=1;
@@ -431,14 +434,12 @@ public class Schedule {
 			}
 			// if no, just add a new player to the players group as a clone of the fixed player --> then point fixedPlayer to new player!!
 			if (!playerAlreadyRegistered) {
-				Player newPlayer = new Player(fixedPlayer.name);
-				int totalAmountOfPlayers = 0;
-				for (Player playerUnit : players.values()) {
-					totalAmountOfPlayers += playerUnit.getSize();
-				}
-				newPlayer.playerNr = totalAmountOfPlayers+1;
+				Player newPlayer = new Player(fixedPlayer.name, true);
+				newPlayer.playerNr = PlayerUtils.searchHighestPlayerNr(players)+1;
 				newPlayer.maxGroupSize = fixedPlayer.maxGroupSize;
 				newPlayer.nSlots = fixedPlayer.nSlots;
+				newPlayer.maxAgeDiff = fixedPlayer.maxAgeDiff;
+				newPlayer.maxClassDiff = fixedPlayer.maxClassDiff;
 				players.put(newPlayer.playerNr, newPlayer);
 				for (Slot fixedSlot : fixedPlayer.selectedSlots) {
 					Slot officialScheduleSlot = this.slots.get(this.dayTimeCourt2slotId(fixedSlot.weekdayNr, fixedSlot.time, fixedSlot.courtNr));
@@ -1981,7 +1982,7 @@ public class Schedule {
 		System.out.println("unsatisfiedTrainingFrequencyBins:  "+unsatisfiedTrainingFrequencyBins.toString());
 		
 		int totPlayerSlots = 0;
-		for (Player player : this.players.values()) {
+		for (Player player : PlayerUtils.makeSubplayerListFromPlayersMap(this.players)) {
 			totPlayerSlots += player.selectedSlots.size();
 		}
 		System.out.println("Number of playerSlots by players:  "+totPlayerSlots);

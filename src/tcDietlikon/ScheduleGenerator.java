@@ -78,8 +78,9 @@ public class ScheduleGenerator {
 		boolean doNotLoadSelectedSlots = true;
 		boolean loadPlayers = true;
 		boolean useFullSlotFilling = false;
-		boolean considerMustHavePeerWishes = false;
-		boolean mergeMustBePeers2OnePlayer = false;
+		boolean considerMustHavePeerWishes = true;	// set this true to consider wishes with whom a player wants to be in a group
+		boolean mergeMustBePeers2OnePlayer = true;	// set this true if want to use strategy where one player may have separate subPlayerProfiles
+													// set this to false to not combine player profiles but instead link peer players by list references
 
 	// create or load players
 		Map<Integer,Player> players = new HashMap<Integer,Player>();

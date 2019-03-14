@@ -78,7 +78,19 @@ public class ScheduleWriter {
 						slotCell.setCellValue(this.schedule.slot2name(day,time,court)+" ("+this.schedule.dayTimeCourt2slotId(day, time, court)+")");
 					}
 					else {
-						slotCell.setCellValue("Tennishalle Dietlikon AG");
+						slotCell.setCellValue("Tennishalle Halsrüti AG");
+						// mark the cells that are not available for the tennis school as "blocked"
+						for (int s=1; s<=8; s++) {
+							Row blockedCellRow = rows.get(refRowNr+s);
+							Cell blockedCell;
+							if (blockedCellRow.getCell(refColNr)==null) {
+								blockedCell = blockedCellRow.createCell(refColNr);
+							}
+							else {
+								blockedCell = blockedCellRow.getCell(refColNr);
+							}
+							blockedCell.setCellValue("------  gesperrt  ------");
+						}
 					}
 					slotCell.setCellStyle(slotTitleCellStyle);
 				}
@@ -89,78 +101,97 @@ public class ScheduleWriter {
 			refColNr = this.schedule.slot2col(slot.weekdayNr, slot.courtNr);
 			refRowNr = this.schedule.slot2row(slot.time);
 			int playerNr = 1;
-			for (Player player : slot.players.values()) {
-				Row playerRow = rows.get(refRowNr + playerNr);
-				Cell nameCell = playerRow.createCell(refColNr);
-				// make sure to mark undesirable slots!
-				if (slot.isFrozen) {
-					nameCell.setCellValue("(**) "+player.name + " (" + player.linkablePlayers.size() + ")");
-				}				
-				else if (!player.isADesiredSlot(slot)) {
-					nameCell.setCellStyle(undesiredSlotStyle);
-					nameCell.setCellValue("(*) "+player.name + " (" + player.linkablePlayers.size() + ")");
+			for (Player playerUnit : slot.players.values()) {
+				// a playerUnit may contain more than one player
+				// if so, make a list of subProfiles that must be listed individually in the slot
+				// else, subprofiles list is just the single player in the unit i.e. the unit itself
+				List<Player> subProfiles = new ArrayList<Player>();
+				if (playerUnit.subPlayerProfiles.size()==0) {
+					subProfiles.add(playerUnit);
 				}
-				// make sure to mark undesirable slots!
 				else {
-					nameCell.setCellValue(player.name + " (" + player.linkablePlayers.size() + ")");
-					XSSFCellStyle newColorCellStyle = this.defaultWorkbook.createCellStyle();
-					newColorCellStyle.cloneStyleFrom(nameCell.getCellStyle());
-//					XSSFColor efficiencyColor = new XSSFColor(new Color(255,255,255));
-					Color efficiencyColor = new Color(255,255,0);
-					if (slot.category.equals("TC")) {
-						if (Arrays.asList(7,8).contains(slot.getSize())) {
-							efficiencyColor = new Color(0,128,0);		// green for very good usage of player tolerance
-						}
-						else if (Arrays.asList(5,6).contains(slot.getSize())){
-							efficiencyColor = new Color(107,142,35);	// olive for good usage of player tolerance
-						}
-						else if (Arrays.asList(4).contains(slot.getSize())){
-							efficiencyColor = new Color(154,205,50);	// light green for satisfying usage of player tolerance
-						}
-						else if (Arrays.asList(2,3).contains(slot.getSize())){
-							efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
-						}
-						else if (Arrays.asList(1).contains(slot.getSize())){
-							efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
-						}
-					}
-					else {
-						if (slot.getSize() > player.maxGroupSize) {
-							efficiencyColor = new Color(32,178,170);	// blue for too full groups
-						}
-						else if (slot.getSize()==player.maxGroupSize) {
-							efficiencyColor = new Color(0,128,0);
-						}
-						else if (slot.getSize()==player.maxGroupSize-1){
-							efficiencyColor = new Color(154,205,50);	// light green for good usage of player tolerance
-						}
-						else if (slot.getSize()==player.maxGroupSize-2){
-							efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
-						}
-						else if (slot.getSize()<=player.maxGroupSize-3){
-							efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
-						}						
-					}
-					newColorCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-					newColorCellStyle.setFillForegroundColor(new XSSFColor(efficiencyColor));
-					newColorCellStyle.setFillBackgroundColor(new XSSFColor(efficiencyColor));
-					nameCell.setCellStyle(newColorCellStyle);
+					subProfiles.addAll(playerUnit.subPlayerProfiles);
 				}
-				Cell maxGroupSizeCell = playerRow.createCell(refColNr + 1);
-				maxGroupSizeCell.setCellValue(player.maxGroupSize);
-				Cell classCell = playerRow.createCell(refColNr + 2);
-				if (!player.category.equals("default")) 												{ classCell.setCellValue(player.category); }
-				else if (player.category.equals("default") && 0<player.strength && player.strength<10) 	{ classCell.setCellValue("R" + player.strength); }
-				else if (player.category.equals("default") && -4<player.strength && player.strength<1) 	{ classCell.setCellValue("N" + (4+player.strength)); }
-				else 																					{ classCell.setCellValue("?default?"); }
-				Cell ageCell = playerRow.createCell(refColNr + 3);
-				ageCell.setCellValue(player.age);
-				ageCell.setCellStyle(rightBorderCellStyleLight);
-				playerNr++;
+				for (Player player : subProfiles) {
+					Row playerRow = rows.get(refRowNr + playerNr);
+					Cell nameCell = playerRow.createCell(refColNr);
+					// make sure to mark undesirable slots!
+					if (slot.isFrozen) {
+						nameCell.setCellValue("(**) "+player.name + " (" + player.linkablePlayers.size() + ")");
+					}				
+					else if (!player.isADesiredSlot(slot)) {
+						nameCell.setCellStyle(undesiredSlotStyle);
+						nameCell.setCellValue("(*) "+player.name + " (" + player.linkablePlayers.size() + ")");
+					}
+					// make sure to mark undesirable slots!
+					else {
+						// if the players are mustBeTogetherPeers, mark them with PP (Peer Player). else, just standard name format
+						if (subProfiles.size()>1) {
+							nameCell.setCellValue("(PP) "+player.name + " (" + playerUnit.linkablePlayers.size() + ")");							
+						}
+						else {
+							nameCell.setCellValue(player.name + " (" + playerUnit.linkablePlayers.size() + ")");							
+						}
+						XSSFCellStyle newColorCellStyle = this.defaultWorkbook.createCellStyle();
+						newColorCellStyle.cloneStyleFrom(nameCell.getCellStyle());
+//					XSSFColor efficiencyColor = new XSSFColor(new Color(255,255,255));
+						Color efficiencyColor = new Color(255,255,0);
+						if (slot.category.equals("TC")) {
+							if (Arrays.asList(7,8).contains(slot.getSize())) {
+								efficiencyColor = new Color(0,128,0);		// green for very good usage of player tolerance
+							}
+							else if (Arrays.asList(5,6).contains(slot.getSize())){
+								efficiencyColor = new Color(107,142,35);	// olive for good usage of player tolerance
+							}
+							else if (Arrays.asList(4).contains(slot.getSize())){
+								efficiencyColor = new Color(154,205,50);	// light green for satisfying usage of player tolerance
+							}
+							else if (Arrays.asList(2,3).contains(slot.getSize())){
+								efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
+							}
+							else if (Arrays.asList(1).contains(slot.getSize())){
+								efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
+							}
+						}
+						else {
+							if (slot.getSize() > player.maxGroupSize) {
+								efficiencyColor = new Color(32,178,170);	// blue for too full groups
+							}
+							else if (slot.getSize()==player.maxGroupSize) {
+								efficiencyColor = new Color(0,128,0);
+							}
+							else if (slot.getSize()==player.maxGroupSize-1){
+								efficiencyColor = new Color(154,205,50);	// light green for good usage of player tolerance
+							}
+							else if (slot.getSize()==player.maxGroupSize-2){
+								efficiencyColor = new Color(255,255,0);	// yellow for bad usage of player tolerance
+							}
+							else if (slot.getSize()<=player.maxGroupSize-3){
+								efficiencyColor = new Color(255,140,0);	// orange for very bad usage of player tolerance
+							}						
+						}
+						newColorCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+						newColorCellStyle.setFillForegroundColor(new XSSFColor(efficiencyColor));
+						newColorCellStyle.setFillBackgroundColor(new XSSFColor(efficiencyColor));
+						nameCell.setCellStyle(newColorCellStyle);
+					}
+					Cell maxGroupSizeCell = playerRow.createCell(refColNr + 1);
+					maxGroupSizeCell.setCellValue(player.maxGroupSize);
+					Cell classCell = playerRow.createCell(refColNr + 2);
+					if (!player.category.equals("default")) 												{ classCell.setCellValue(player.category); }
+					else if (player.category.equals("default") && 0<player.strength && player.strength<10) 	{ classCell.setCellValue("R" + player.strength); }
+					else if (player.category.equals("default") && -4<player.strength && player.strength<1) 	{ classCell.setCellValue("N" + (4+player.strength)); }
+					else 																					{ classCell.setCellValue("?default?"); }
+					Cell ageCell = playerRow.createCell(refColNr + 3);
+					ageCell.setCellValue(player.age);
+					ageCell.setCellStyle(rightBorderCellStyleLight);
+					playerNr++;
+				}
 			}
 		}
 	  
 		// make list of players with nSlots not satisfied
+		// --> for every player (maybe multiple times) make an entry with its name, groupsize strength and slots etc after saturday!
 		int col = 72;	// make a colum with unsatisfied players after 6 days (3 courts w/ 4 columns) at 12 columns each
 		int rr = 2;	// start at third row for list of unsatisfied players
 		Row rrow;
@@ -168,57 +199,67 @@ public class ScheduleWriter {
 		Cell classCell;
 		Cell ageCell;
 		Cell maxGroupSizeCell;
-		for (Player player : this.schedule.players.values()) {
-			int nUnsatisfiedSlots = player.nSlots-player.selectedSlots.size();
+		for (Player playerUnit : this.schedule.players.values()) {
+			int nUnsatisfiedSlots = playerUnit.nSlots-playerUnit.selectedSlots.size();
 			if (nUnsatisfiedSlots>0) {
-				if (sheet.getLastRowNum()<rr) {
-					rrow = sheet.createRow(rr);
+				// if playerUnit consists of several players, must note an undesired slot for all subPlayerProfiles
+				// if so, make a list of subProfiles that must be listed individually
+				// else, subprofiles list is just the single player in the unit i.e. the unit itself
+				List<Player> subProfiles = new ArrayList<Player>();
+				if (playerUnit.subPlayerProfiles.size()==0) {
+					subProfiles.add(playerUnit);
 				}
 				else {
-					rrow = sheet.getRow(rr);					
+					subProfiles.addAll(playerUnit.subPlayerProfiles);
 				}
-				nameCell = rrow.createCell(col+2);
-				nameCell.setCellValue(player.age + " - " + player.name);
-				nameCell.setCellStyle(undesiredSlotStyle);
-				Cell borderCell = rrow.createCell(col+3);
-				borderCell.setCellStyle(leftBorderCellStyle);
-				classCell = rrow.createCell(col);
-				classCell.setCellValue(player.strength2string());					
-				classCell.setCellStyle(slotTitleCellStyle);
+				for (Player player : subProfiles) {
+					if (sheet.getLastRowNum()<rr) {
+						rrow = sheet.createRow(rr);
+					}
+					else {
+						rrow = sheet.getRow(rr);					
+					}
+					nameCell = rrow.createCell(col+2);
+					nameCell.setCellValue(player.age + " - " + player.name);
+					nameCell.setCellStyle(undesiredSlotStyle);
+					Cell borderCell = rrow.createCell(col+3);
+					borderCell.setCellStyle(leftBorderCellStyle);
+					classCell = rrow.createCell(col);
+					classCell.setCellValue(player.strength2string());					
+					classCell.setCellStyle(slotTitleCellStyle);
 //				ageCell = rrow.createCell(col+1);
 //				ageCell.setCellValue(player.age);
-				maxGroupSizeCell = rrow.createCell(col+1);
-				maxGroupSizeCell.setCellValue(player.maxGroupSize+"er");
-				maxGroupSizeCell.setCellStyle(slotTitleCellStyle);
-				rr++;
-				for (int n=1; n<=nUnsatisfiedSlots; n++) {
-					for (Slot slot : player.desiredSlots) {
-						Row slotRow;
-						if (sheet.getLastRowNum()<rr) {
-							slotRow = sheet.createRow(rr);
+					maxGroupSizeCell = rrow.createCell(col+1);
+					maxGroupSizeCell.setCellValue(player.maxGroupSize+"er");
+					maxGroupSizeCell.setCellStyle(slotTitleCellStyle);
+					rr++;
+					for (int n=1; n<=nUnsatisfiedSlots; n++) {
+						for (Slot slot : player.desiredSlots) {
+							Row slotRow;
+							if (sheet.getLastRowNum()<rr) {
+								slotRow = sheet.createRow(rr);
+							}
+							else {
+								slotRow = sheet.getRow(rr);							
+							}
+							Cell dayCell = slotRow.createCell(col);
+							dayCell.setCellValue(Slot.dayNr2Name(slot.weekdayNr));
+							Cell timeCell = slotRow.createCell(col+1);
+							timeCell.setCellValue(slot.time);
+							Cell whiteCell = slotRow.createCell(col+2);
+							whiteCell.setCellValue("");
+							whiteCell.setCellStyle(timeCell.getCellStyle());
+							borderCell = slotRow.createCell(col+3);
+							borderCell.setCellStyle(leftBorderCellStyle);
+							rr++;
 						}
-						else {
-							slotRow = sheet.getRow(rr);							
-						}
-						Cell dayCell = slotRow.createCell(col);
-						dayCell.setCellValue(Slot.dayNr2Name(slot.weekdayNr));
-						Cell timeCell = slotRow.createCell(col+1);
-						timeCell.setCellValue(slot.time);
-						Cell whiteCell = slotRow.createCell(col+2);
-						whiteCell.setCellValue("");
-						whiteCell.setCellStyle(timeCell.getCellStyle());
-						borderCell = slotRow.createCell(col+3);
-						borderCell.setCellStyle(leftBorderCellStyle);
-						rr++;
 					}
+					
 				}
 				
 			}
 		}
-		
-		
-		// for every player (maybe multiple times) make an entry with its name, groupsize strength and slots etc after saturday!
-		
+				
 		// Resize all columns to fit the content size
 		for (int i = 0; i <= 250; i++) {
 			sheet.autoSizeColumn(i);
@@ -635,148 +676,90 @@ public class ScheduleWriter {
 		
 	}
 
-	private int writePlayer2Table(Player player, int refRowNr, int category, String chapterTitle, List<Row> rows) {
+	private int writePlayer2Table(Player playerUnit, int refRowNr, int category, String chapterTitle, List<Row> rows) {
 		
-		Cell nameCell1 = rows.get(refRowNr).createCell(0);
-		Cell nameCell2 = rows.get(refRowNr).createCell(1);
-		nameCell1.setCellValue("Name");
-		nameCell2.setCellValue(player.name);
-		nameCell1.setCellStyle(cellStyles.get(category));
-		nameCell2.setCellStyle(cellStyles.get(category));
-		refRowNr++;
-		Cell remarkCell1 = rows.get(refRowNr).createCell(0);
-		Cell remarkCell2 = rows.get(refRowNr).createCell(1);
-		remarkCell1.setCellValue("Spielerbemerkungen");
-		if (player.samePersonPlayerProfiles.size()>0) {
-			String samePlayerProfiles = "Gleicher Spieler hat noch andere Profile ";
-			for (int s : player.samePersonPlayerProfiles) {
-				Player samePlayer = this.schedule.players.get(s);
-				for (Slot slot : samePlayer.selectedSlots) {
-					samePlayerProfiles += "("+Slot.dayNr2Name(slot.weekdayNr)+"-"+slot.time+"h-Court"+slot.courtNr+")";
-				}
-			}
-			remarkCell2.setCellValue(player.notes + "\r\n" + samePlayerProfiles);
+		// playerUnit may consist of several players
+		// if so, make a list of subProfiles that must be listed individually
+		// else, subprofiles list is just the single player in the unit i.e. the unit itself
+		List<Player> subProfiles = new ArrayList<Player>();
+		if (playerUnit.subPlayerProfiles.size()==0) {
+			subProfiles.add(playerUnit);
 		}
 		else {
-			remarkCell2.setCellValue(player.notes);
+			subProfiles.addAll(playerUnit.subPlayerProfiles);
 		}
-		remarkCell2.setCellStyle(leftAlignCellStyle);
-		refRowNr++;
-		Cell ageCell1 = rows.get(refRowNr).createCell(0);
-		Cell ageCell2 = rows.get(refRowNr).createCell(1);
-		ageCell1.setCellValue("Alter");
-		ageCell2.setCellValue(player.age);
-		ageCell2.setCellStyle(leftAlignCellStyle);
-		refRowNr++;
-		Cell strengthCell1 = rows.get(refRowNr).createCell(0);
-		Cell strengthCell2 = rows.get(refRowNr).createCell(1);
-		strengthCell1.setCellValue("Spielstärke / Kategorie");
-		strengthCell2.setCellValue(player.strength2string());
-		strengthCell2.setCellStyle(leftAlignCellStyle);
-		refRowNr++;
-		Cell sizeCell1 = rows.get(refRowNr).createCell(0);
-		Cell sizeCell2 = rows.get(refRowNr).createCell(1);
-		sizeCell1.setCellValue("Max. Gruppengrösse");
-		sizeCell2.setCellValue(player.maxGroupSize);
-		sizeCell2.setCellStyle(leftAlignCellStyle);
-		refRowNr++;
-		Cell nSlotsCell1 = rows.get(refRowNr).createCell(0);
-		Cell nSlotsCell2 = rows.get(refRowNr).createCell(1);
-		nSlotsCell1.setCellValue("# Gewünschte Trainings");
-		nSlotsCell2.setCellValue(player.nSlots);
-		nSlotsCell2.setCellStyle(leftAlignCellStyle);
-		refRowNr++;
-		Cell nSlotsXCell1 = rows.get(refRowNr).createCell(0);
-		Cell nSlotsXCell2 = rows.get(refRowNr).createCell(1);
-		nSlotsXCell1.setCellValue("# Zu-/Umzuteilende Trainings");
-		if (category == 0 || category == 1) {
-			nSlotsXCell2.setCellValue(player.nSlots - player.selectedSlots.size() + player.undesirablePlacements.size());
-		}
-		if (category == 2) {
-			nSlotsXCell2.setCellValue(0);
-		}
-		nSlotsXCell1.setCellStyle(nSlotsXCellStyle);
-		nSlotsXCell2.setCellStyle(nSlotsXCellStyle);			
-		refRowNr++;
-
-		Cell selected1 = rows.get(refRowNr).createCell(0);
-		Cell selected2 = rows.get(refRowNr).createCell(1);
-		selected1.setCellValue("Zugeteilte Trainings");
-		selected2.setCellValue("Bemerkungen");
-		selected1.setCellStyle(sectionTitleStyle);
-		selected2.setCellStyle(sectionTitleStyle);
-		refRowNr++;
-		
-		if (player.selectedSlots.size()==0) {
-			Cell m1 = rows.get(refRowNr).createCell(0);
-			Cell m2 = rows.get(refRowNr).createCell(1);
-			m1.setCellValue("keine");
-			m2.setCellValue("-");
-			m1.setCellStyle(leftAlignCellStyle);
-			m2.setCellStyle(leftAlignCellStyle);
+		for (Player player : subProfiles) {
+			Cell nameCell1 = rows.get(refRowNr).createCell(0);
+			Cell nameCell2 = rows.get(refRowNr).createCell(1);
+			nameCell1.setCellValue("Name");
+			nameCell2.setCellValue(player.name);
+			nameCell1.setCellStyle(cellStyles.get(category));
+			nameCell2.setCellStyle(cellStyles.get(category));
 			refRowNr++;
-		}
-		else {
-			for (Slot slot : player.selectedSlots) {
-				String training = Slot.dayNr2Name(slot.weekdayNr) + " - " + slot.time + "h - Court " + slot.courtNr
-						+ " - G" + slot.getSize();
-				String remark = "";
-				if (category == 1) { // undesired player category
-					remark = "Unerwünschter Slot";
-				} else {
-					remark = "OK";
+			Cell remarkCell1 = rows.get(refRowNr).createCell(0);
+			Cell remarkCell2 = rows.get(refRowNr).createCell(1);
+			remarkCell1.setCellValue("Spielerbemerkungen");
+			if (player.samePersonPlayerProfiles.size()>0) {
+				String samePlayerProfiles = "Gleicher Spieler hat noch andere Profile ";
+				for (int s : player.samePersonPlayerProfiles) {
+					Player samePlayer = this.schedule.players.get(s);
+					for (Slot slot : samePlayer.selectedSlots) {
+						samePlayerProfiles += "("+Slot.dayNr2Name(slot.weekdayNr)+"-"+slot.time+"h-Court"+slot.courtNr+")";
+					}
 				}
-				Cell slotCell = rows.get(refRowNr).createCell(0);
-				Cell remarkCell = rows.get(refRowNr).createCell(1);
-				slotCell.setCellValue(training);
-				remarkCell.setCellValue(remark);
-				refRowNr++;
+				remarkCell2.setCellValue(player.notes + "\r\n" + samePlayerProfiles);
 			}
-		}
-		
-		Cell desired1 = rows.get(refRowNr).createCell(0);
-		Cell desired2 = rows.get(refRowNr).createCell(1);
-		desired1.setCellValue("Wunschtermine");
-		desired1.setCellStyle(sectionTitleStyle);
-		desired2.setCellStyle(sectionTitleStyle);
-		refRowNr++;
-		
-		if (player.desiredSlots.size()==0) {
-			Cell m1 = rows.get(refRowNr).createCell(0);
-			Cell m2 = rows.get(refRowNr).createCell(1);
-			m1.setCellValue("keine");
-			m2.setCellValue("-");
-			m1.setCellStyle(leftAlignCellStyle);
-			m2.setCellStyle(leftAlignCellStyle);
+			else {
+				remarkCell2.setCellValue(player.notes);
+			}
+			remarkCell2.setCellStyle(leftAlignCellStyle);
 			refRowNr++;
-		}
-		else {
-			for (Slot slot : player.desiredSlots) {
-				String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h";
-				String remark = "-";
-				Cell slotCell = rows.get(refRowNr).createCell(0);
-				Cell remarkCell = rows.get(refRowNr).createCell(1);
-				slotCell.setCellValue(training);
-				remarkCell.setCellValue(remark);
-				refRowNr++;
+			Cell ageCell1 = rows.get(refRowNr).createCell(0);
+			Cell ageCell2 = rows.get(refRowNr).createCell(1);
+			ageCell1.setCellValue("Alter");
+			ageCell2.setCellValue(player.age);
+			ageCell2.setCellStyle(leftAlignCellStyle);
+			refRowNr++;
+			Cell strengthCell1 = rows.get(refRowNr).createCell(0);
+			Cell strengthCell2 = rows.get(refRowNr).createCell(1);
+			strengthCell1.setCellValue("Spielstärke / Kategorie");
+			strengthCell2.setCellValue(player.strength2string());
+			strengthCell2.setCellStyle(leftAlignCellStyle);
+			refRowNr++;
+			Cell sizeCell1 = rows.get(refRowNr).createCell(0);
+			Cell sizeCell2 = rows.get(refRowNr).createCell(1);
+			sizeCell1.setCellValue("Max. Gruppengrösse");
+			sizeCell2.setCellValue(player.maxGroupSize);
+			sizeCell2.setCellStyle(leftAlignCellStyle);
+			refRowNr++;
+			Cell nSlotsCell1 = rows.get(refRowNr).createCell(0);
+			Cell nSlotsCell2 = rows.get(refRowNr).createCell(1);
+			nSlotsCell1.setCellValue("# Gewünschte Trainings");
+			nSlotsCell2.setCellValue(player.nSlots);
+			nSlotsCell2.setCellStyle(leftAlignCellStyle);
+			refRowNr++;
+			Cell nSlotsXCell1 = rows.get(refRowNr).createCell(0);
+			Cell nSlotsXCell2 = rows.get(refRowNr).createCell(1);
+			nSlotsXCell1.setCellValue("# Zu-/Umzuteilende Trainings");
+			if (category == 0 || category == 1) {
+				nSlotsXCell2.setCellValue(player.nSlots - player.selectedSlots.size() + player.undesirablePlacements.size());
 			}
-		}
-		
-		if (category==0 || category==1) {
-			Cell alternative1 = rows.get(refRowNr).createCell(0);
-			Cell alternative2 = rows.get(refRowNr).createCell(1);
-			if (category==0) {
-				alternative1.setCellValue("Vorschläge");				
+			if (category == 2) {
+				nSlotsXCell2.setCellValue(0);
 			}
-			if (category==1) {
-				alternative1.setCellValue("Alternative Vorschläge");
-			}
-			alternative2.setCellValue("Bemerkungen");
-			alternative1.setCellStyle(sectionTitleStyle);
-			alternative2.setCellStyle(sectionTitleStyle);
+			nSlotsXCell1.setCellStyle(nSlotsXCellStyle);
+			nSlotsXCell2.setCellStyle(nSlotsXCellStyle);			
 			refRowNr++;
 			
-			if (player.postProposedSlots.size()==0) {
+			Cell selected1 = rows.get(refRowNr).createCell(0);
+			Cell selected2 = rows.get(refRowNr).createCell(1);
+			selected1.setCellValue("Zugeteilte Trainings");
+			selected2.setCellValue("Bemerkungen");
+			selected1.setCellStyle(sectionTitleStyle);
+			selected2.setCellStyle(sectionTitleStyle);
+			refRowNr++;
+			
+			if (player.selectedSlots.size()==0) {
 				Cell m1 = rows.get(refRowNr).createCell(0);
 				Cell m2 = rows.get(refRowNr).createCell(1);
 				m1.setCellValue("keine");
@@ -786,15 +769,85 @@ public class ScheduleWriter {
 				refRowNr++;
 			}
 			else {
-				for (Entry<Slot,String> entry : player.postProposedSlots.entrySet()) {
-					Slot slot = entry.getKey();
-					String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.getSize();
-					String remark = entry.getValue();
+				for (Slot slot : player.selectedSlots) {
+					String training = Slot.dayNr2Name(slot.weekdayNr) + " - " + slot.time + "h - Court " + slot.courtNr
+							+ " - G" + slot.getSize();
+					String remark = "";
+					if (category == 1) { // undesired player category
+						remark = "Unerwünschter Slot";
+					} else {
+						remark = "OK";
+					}
 					Cell slotCell = rows.get(refRowNr).createCell(0);
 					Cell remarkCell = rows.get(refRowNr).createCell(1);
 					slotCell.setCellValue(training);
 					remarkCell.setCellValue(remark);
 					refRowNr++;
+				}
+			}
+			
+			Cell desired1 = rows.get(refRowNr).createCell(0);
+			Cell desired2 = rows.get(refRowNr).createCell(1);
+			desired1.setCellValue("Wunschtermine");
+			desired1.setCellStyle(sectionTitleStyle);
+			desired2.setCellStyle(sectionTitleStyle);
+			refRowNr++;
+			
+			if (player.desiredSlots.size()==0) {
+				Cell m1 = rows.get(refRowNr).createCell(0);
+				Cell m2 = rows.get(refRowNr).createCell(1);
+				m1.setCellValue("keine");
+				m2.setCellValue("-");
+				m1.setCellStyle(leftAlignCellStyle);
+				m2.setCellStyle(leftAlignCellStyle);
+				refRowNr++;
+			}
+			else {
+				for (Slot slot : player.desiredSlots) {
+					String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h";
+					String remark = "-";
+					Cell slotCell = rows.get(refRowNr).createCell(0);
+					Cell remarkCell = rows.get(refRowNr).createCell(1);
+					slotCell.setCellValue(training);
+					remarkCell.setCellValue(remark);
+					refRowNr++;
+				}
+			}
+			
+			if (category==0 || category==1) {
+				Cell alternative1 = rows.get(refRowNr).createCell(0);
+				Cell alternative2 = rows.get(refRowNr).createCell(1);
+				if (category==0) {
+					alternative1.setCellValue("Vorschläge");				
+				}
+				if (category==1) {
+					alternative1.setCellValue("Alternative Vorschläge");
+				}
+				alternative2.setCellValue("Bemerkungen");
+				alternative1.setCellStyle(sectionTitleStyle);
+				alternative2.setCellStyle(sectionTitleStyle);
+				refRowNr++;
+				
+				if (player.postProposedSlots.size()==0) {
+					Cell m1 = rows.get(refRowNr).createCell(0);
+					Cell m2 = rows.get(refRowNr).createCell(1);
+					m1.setCellValue("keine");
+					m2.setCellValue("-");
+					m1.setCellStyle(leftAlignCellStyle);
+					m2.setCellStyle(leftAlignCellStyle);
+					refRowNr++;
+				}
+				else {
+					for (Entry<Slot,String> entry : player.postProposedSlots.entrySet()) {
+						Slot slot = entry.getKey();
+						String training = Slot.dayNr2Name(slot.weekdayNr)+" - "+slot.time+"h - Court "+slot.courtNr+" - G"+slot.getSize();
+						String remark = entry.getValue();
+						Cell slotCell = rows.get(refRowNr).createCell(0);
+						Cell remarkCell = rows.get(refRowNr).createCell(1);
+						slotCell.setCellValue(training);
+						remarkCell.setCellValue(remark);
+						refRowNr++;
+					}
 				}
 			}
 		}

@@ -68,7 +68,7 @@ public class Slot {
 		if (this.isFrozen) {
 			return false;
 		}
-		if (this.players.containsKey(player.playerNr)) {
+		if (PlayerUtils.containsAPlayer(this.players, player)) {
 			return false;
 		}
 		if (! player.isADesiredSlot(this)) {
