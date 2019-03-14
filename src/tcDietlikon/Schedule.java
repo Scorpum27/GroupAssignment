@@ -269,9 +269,13 @@ public class Schedule {
 		for (Player player : players.values()) {
 			for (Player subPlayer : player.subPlayerProfiles) {
 				for (Player otherPlayer : players.values()) {
+					if (player.equals(otherPlayer)) {
+						continue;
+					}
 					for (Player otherSubPlayer : otherPlayer.subPlayerProfiles) {
 						if (otherSubPlayer.name.equals(subPlayer.name)) {
-							subPlayer.samePersonPlayerProfiles.add(otherSubPlayer.playerNr);
+							// CAUTION: add otherPlayer and not otherSubPlayer bc the latter does not carry the up-to-date selectedSlots while otherPlayer does
+							subPlayer.samePersonPlayerProfiles.add(otherPlayer.playerNr);
 							// add only for this player --> this way can avoid double adding when same player combo is hit by switching inner and outer loop
 						}
 					}
@@ -851,9 +855,6 @@ public class Schedule {
 				}												
 			}
 		}
-		
-		
-		// IMPROVEMENT PROPOSALS FOR UNSATISFIED PLAYERS
 	}
 
 	@SuppressWarnings("unused")
@@ -919,6 +920,7 @@ public class Schedule {
 				Boolean pushSuccessful = this.pushPlayers(slot.slotId, pushLevel);
 				if (pushSuccessful) {
 					System.out.println("Sender Group Size = "+groupSize);
+					
 				} else {
 //					System.out.println("Push failed for this slot.");
 				}
@@ -942,6 +944,9 @@ public class Schedule {
 			boolean pushSuccessful = pushedSchedule.pushSinglePlayer(player.playerNr, slotId, pushLevel);
 			if (pushSuccessful) {
 				minimumOneSuccessfulPush = true;
+				if (player.getSize()>1) {
+					System.out.println("Successfully breakShifted a playerUnion: "+player.subPlayerProfiles.get(0).name+"/"+player.subPlayerProfiles.get(1).name);
+				}
 			}
 			// the following block is activated for conditional pushs i.e. where single pushs can only be performed if all players can be relocated
 			// for the default case, however, any feasible push is executed immediately and the block below is not necessary
@@ -1218,6 +1223,9 @@ public class Schedule {
 					initialPusherSlotCopy, pushLevel, false, 0, false);
 			if (pushSuccessful) {
 				minimumOneSuccessfulPush = true;
+				if (player.getSize()>1) {
+					System.out.println("Successfully shifted a playerUnion: "+player.subPlayerProfiles.get(0).name+"/"+player.subPlayerProfiles.get(1).name);
+				}
 			}
 			// the following block is activated for conditional pushs i.e. where single pushs can only be performed if all players can be relocated
 			// for the default case, however, any feasible push is executed immediately and the block below is not necessary
@@ -1267,7 +1275,7 @@ public class Schedule {
 			}
 			else {
 				if (methodCalledAfterPush) {
-					thisSlotSizeBeforePush = this.slots.get(slotId).getSize()-1;
+					thisSlotSizeBeforePush = this.slots.get(slotId).getSize()-this.players.get(playerNr).getSize();
 				}
 				else {
 					thisSlotSizeBeforePush = this.slots.get(slotId).getSize();
@@ -1800,7 +1808,7 @@ public class Schedule {
 				int maxGroupSizeOfPlayer = player.maxGroupSize;
 //				System.out.println("maxGroupSizeOfPlayer: "+maxGroupSizeOfPlayer);
 //				System.out.println("player.nSlots: "+player.nSlots);
-				playerMaxSizeBins.put(maxGroupSizeOfPlayer, playerMaxSizeBins.get(maxGroupSizeOfPlayer)+1*player.nSlots);
+				playerMaxSizeBins.put(maxGroupSizeOfPlayer, playerMaxSizeBins.get(maxGroupSizeOfPlayer)+player.nSlots*player.getSize());
 		}
 		System.out.println("Desired max. group sizes: "+playerMaxSizeBins.toString());
 		
@@ -1822,7 +1830,7 @@ public class Schedule {
 				if (diff<0) {
 					continue;
 				}
-				playerEfficiencyBins.put(diff,playerEfficiencyBins.get(diff)+1);
+				playerEfficiencyBins.put(diff,playerEfficiencyBins.get(diff)+player.getSize());
 				if (maxGroupSizeOfPlayer<limitingMaxGroupSize) {
 					limitingMaxGroupSize=maxGroupSizeOfPlayer;
 				}
@@ -1858,25 +1866,31 @@ public class Schedule {
 //		- successful placement in desired slots
 //		- compatibility with other players
 		
-		// no other slot on same day for each player
+		// no other slot on same day for each player --> check also referenced samePlayerProfiles here!
 		for (Player player : players.values()) {
 			for (Slot thisSlot : player.selectedSlots) {
-				for (Slot otherSlot : player.selectedSlots) {
-					if (thisSlot.slotId==otherSlot.slotId) {
+				// have to check samePlayerReferences of all its subprofiles!
+				for (Player subplayer : player.subPlayerProfiles) {
+					for (int subPlayerSamePlayerReferenceNr : subplayer.samePersonPlayerProfiles) {
+						Player subPlayerSamePlayerReference = this.players.get(subPlayerSamePlayerReferenceNr);
+						for (Slot otherSlot : subPlayerSamePlayerReference.selectedSlots) {
+							if (thisSlot.slotId==otherSlot.slotId) {
 //						System.out.println("SLOTS THE SAME - NO WAY!!!!");
-						continue;
-					}
+								continue;
+							}
 //					else {
 //						System.out.println("It proceeds ...!");
 //					}
-					else if (thisSlot.weekdayNr==otherSlot.weekdayNr) {
-						System.out.println("ERROR: Two slots on same day!");
-					}
+							else if (thisSlot.weekdayNr==otherSlot.weekdayNr) {
+								System.out.println("ERROR: Two slots on same day!");
+							}
 //					else if (thisSlot.weekdayNr==otherSlot.weekdayNr) {
 //						System.out.println("ERROR: Two slots on same day!");
 //					}
-					else {
+							else {
 //						System.out.println("SameDaySlot OK!");
+							}
+						}
 					}
 				}
 			}
@@ -1927,13 +1941,15 @@ public class Schedule {
 			unsatisfiedTrainingFrequencyBins.put(i, 0);
 		}
 		for (Player player : this.players.values()) {
-			if (player.selectedSlots.size()<player.nSlots) {
-				int diff = player.nSlots-player.selectedSlots.size();
-				if (diff > 4) {
-					unsatisfiedTrainingFrequencyBins.put(4,unsatisfiedTrainingFrequencyBins.get(4)+1);
-				}
-				else {
-					unsatisfiedTrainingFrequencyBins.put(diff,unsatisfiedTrainingFrequencyBins.get(diff)+1);
+			for (Player subplayer : player.subPlayerProfiles) {
+				if (subplayer.selectedSlots.size()<subplayer.nSlots) {
+					int diff = subplayer.nSlots-subplayer.selectedSlots.size();
+					if (diff > 4) {
+						unsatisfiedTrainingFrequencyBins.put(4,unsatisfiedTrainingFrequencyBins.get(4)+1);
+					}
+					else {
+						unsatisfiedTrainingFrequencyBins.put(diff,unsatisfiedTrainingFrequencyBins.get(diff)+1);
+					}
 				}
 			}
 		}
@@ -1949,6 +1965,24 @@ public class Schedule {
 			totSlotPlayers += slot.getSize();
 		}
 		System.out.println("Number of playerSlots by slots:  "+totSlotPlayers);
+	}
+
+	public void cleanUp() {
+		for (Player player : this.players.values()) {
+			for (Player subplayer : player.subPlayerProfiles) {
+				for (Slot desiredSlot : player.desiredSlots) {
+					if (!subplayer.hasDesiredSlotOnSameDayAndSameTime(desiredSlot, this)) {
+						subplayer.desiredSlots.add(desiredSlot);
+					}
+				}
+				for (Slot selectedSlot : player.selectedSlots) {
+					if (!subplayer.hasSelectedSlotOnSameDayAndSameTime(selectedSlot, this)) {
+						subplayer.selectedSlots.add(selectedSlot);
+					}
+				}
+			}
+		}
+		
 	}
 
 }

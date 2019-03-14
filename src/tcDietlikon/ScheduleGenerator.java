@@ -73,7 +73,7 @@ public class ScheduleGenerator {
 	
 		int pushLevel = 5;
 		boolean createNewPlayerSet = false;
-		boolean useFixedSlotFile = true;
+		boolean useFixedSlotFile = false;
 		int initialPlacementStrategy = 2;
 		boolean doNotLoadSelectedSlots = true;
 		boolean loadPlayers = true;
@@ -105,6 +105,7 @@ public class ScheduleGenerator {
 
 	// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);
+		// PlayerUtils.randomlyMakeSomeMergers(players);
 		
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
 		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
@@ -115,6 +116,7 @@ public class ScheduleGenerator {
 	// refine schedule to be more efficient
 		schedule.calculateEfficiency(players, "Schedule efficiency BEFORE refinement:");
 		schedule.refine(players, pushLevel);
+		schedule.cleanUp();	// equip the supPlayerProfiles with the desired and selected slots of their mainProfile that have been assigned during the optimization
 		schedule.calculateEfficiency(players, "Schedule efficiency AFTER refinement:");
 	
 	// verify compliance of slot and player assignment -> slots feasible and players satisfied

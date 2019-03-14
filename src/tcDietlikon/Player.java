@@ -157,34 +157,15 @@ public class Player {
 			System.out.println("CAUTION: Player did not allow slot removal as the player is frozen.");
 			return false;
 		}
-		boolean allProfileRemovalsSuccessful = true;
-		boolean mainProfileRemovalSuccessful = false;
 		Iterator<Slot> slotIterMainProfile = this.selectedSlots.iterator();
 		while (slotIterMainProfile.hasNext()) {
 			Slot slot = slotIterMainProfile.next();
 			if (slot.isSameTimeAndDay(xSlot)) {				
 				slotIterMainProfile.remove();
-				mainProfileRemovalSuccessful = true;
-				break;
+				return true;
 			}
 		}
-		if (!mainProfileRemovalSuccessful) {
-			allProfileRemovalsSuccessful = false;
-		}
-//		subplayerLoop:
-//		for (Player subplayer : this.subPlayerProfiles) {
-//			Iterator<Slot> slotIter = subplayer.selectedSlots.iterator();
-//			while (slotIter.hasNext()) {
-//				Slot slot = slotIter.next();
-//				if (slot.isSameTimeAndDay(xSlot)) {				
-//					slotIter.remove();
-//					continue subplayerLoop;
-//				}
-//			}
-//			// if code has arrived here, no slot could be remove for this subplayer!
-//			allProfileRemovalsSuccessful = false;
-//		}
-		return allProfileRemovalsSuccessful;
+		return false;
 	}
 	
 	public void addSelectedSlot(Slot xSlot) {
@@ -209,18 +190,20 @@ public class Player {
 				return false;
 			}
 		}
-		// repeat exactly the same story for all same player profiles and their slots
-		for (int playerNr : this.samePersonPlayerProfiles) {
-			Player samePlayer = schedule.players.get(playerNr);
-			for (Slot selectedSlot : samePlayer.selectedSlots) {
-				// do not have to check slots on the day that we are dropping the training on bc it is free again
-				if (selectedSlot.weekdayNr==thisSlot.weekdayNr) {
-					continue;
-				}
-				// check if otherslot does not interfere with selected training slots on another day
-				// if it does, player cannot be moved to that day a second time
-				if (selectedSlot.weekdayNr == otherslot.weekdayNr) {
-					return false;
+		// repeat exactly the same story for all same player profiles (have to refer to subplayers here!) and their slots
+		for (Player subplayer : this.subPlayerProfiles) {
+			for (int playerNr : subplayer.samePersonPlayerProfiles) {
+				Player samePlayer = schedule.players.get(playerNr);
+				for (Slot selectedSlot : samePlayer.selectedSlots) {
+					// do not have to check slots on the day that we are dropping the training on bc it is free again
+					if (selectedSlot.weekdayNr==thisSlot.weekdayNr) {
+						continue;
+					}
+					// check if otherslot does not interfere with selected training slots on another day
+					// if it does, player cannot be moved to that day a second time
+					if (selectedSlot.weekdayNr == otherslot.weekdayNr) {
+						return false;
+					}
 				}
 			}
 		}
@@ -248,13 +231,15 @@ public class Player {
 			}
 		}
 		// do the same thing for other player profiles of the same person
-		for (int playerNr : this.samePersonPlayerProfiles) {
-			Player samePlayer = schedule.players.get(playerNr);
-			for (Slot selectedSlot : samePlayer.selectedSlots) {
-				if (slot.weekdayNr==selectedSlot.weekdayNr) {
-					return true;
+		for (Player subplayer : this.subPlayerProfiles) {
+			for (int playerNr : subplayer.samePersonPlayerProfiles) {
+				Player samePlayer = schedule.players.get(playerNr);
+				for (Slot selectedSlot : samePlayer.selectedSlots) {
+					if (slot.weekdayNr==selectedSlot.weekdayNr) {
+						return true;
+					}
 				}
-			}
+			}			
 		}
 		return false;
 	}
@@ -401,6 +386,24 @@ public class Player {
 			subplayer.undesirablePlacements.add(currentlyOptimalSlot);
 		}
 		
+	}
+
+	public boolean hasDesiredSlotOnSameDayAndSameTime(Slot desiredSlot, Schedule schedule) {
+		for (Slot slot : this.desiredSlots) {
+			if (desiredSlot.isSameTimeAndDay(slot)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean hasSelectedSlotOnSameDayAndSameTime(Slot selectedSlot, Schedule schedule) {
+		for (Slot slot : this.selectedSlots) {
+			if (selectedSlot.isSameTimeAndDay(slot)) {
+				return true;
+			}
+		}
+		return false;
 	}
 		
 }

@@ -427,6 +427,7 @@ public class PlayerUtils {
 //        		}
 
         		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize, category, maxAgeDiff, maxClassDiff, true);
+        		newPlayer.notes = playerNotes;
 
         		if (considerMustHavePeerWishes && mustHavePeers.length>0) {
         			for (String mustHavePeerName : mustHavePeers) {
@@ -515,108 +516,7 @@ public class PlayerUtils {
                 		}
                 	}
                 }
-                // at this point we have all groups of players that are to be merged --> now merge the actual players
-                // make an average age, strength, category for the "merged" player and use only slots that have been desired by all players to be merged!
-                for (List<Integer> mergerGroup : mergedGroupsList) {
-                	// if mergedGroup contains of only a single player for some reason, must not merge single player as it is represented perfectly by itself
-                	if (mergerGroup.size()==1) {
-                		System.out.println("Single player in mergerGroup. Continuing with next mergerGroup.");
-                		continue;                		
-                	}
-                	double averageAge = 0.0;
-                	double averageStrength = 0.0;
-                	int minSlots = Integer.MAX_VALUE;
-                	int highestMaxGroupSize = 0;
-                	int lowestMaxAgeDiff = Integer.MAX_VALUE;
-                	int lowestMaxClassDiff = Integer.MAX_VALUE;
-                	String mergedName = "";
-                	String category = "";
-                	for (int playerNr : mergerGroup) {
-                		Player player = players.get(playerNr);
-                		mergedName += (player.name+"/");
-                		averageAge += 1.0*player.age/mergerGroup.size();
-                		averageStrength += 1.0*player.strength/mergerGroup.size();
-                		if (player.nSlots<minSlots) {
-                			minSlots = player.nSlots;
-                		}
-                		if (player.maxAgeDiff<lowestMaxAgeDiff) {
-                			lowestMaxAgeDiff = player.maxAgeDiff;
-                		}
-                		if (player.maxClassDiff<lowestMaxClassDiff) {
-                			lowestMaxClassDiff = player.maxClassDiff;
-                		}
-                		if (player.maxGroupSize>highestMaxGroupSize) {
-                			highestMaxGroupSize = player.maxGroupSize;
-                		}
-                		if (player.category.equals("default")) {
-                			category = "default";
-                		}
-                		else if (Arrays.asList("R","O","G").contains(player.category)) {
-                			if (!category.equals("default")) {
-                				category = player.category;
-                			}
-                		}
-                		else if (player.category.equals("TC")) {
-                			if (!Arrays.asList("default","R","O","G").contains(category)) {
-                				category = "TC";
-                			}
-                		}
-                		else {
-                			System.out.println("This player has unknown category --> may jeopardize setting known category for merged group (PlayerUtils)");
-                		}
-                	}
-                	// have to remove last "/" from the concatenated name
-                	mergedName = mergedName.substring(0, mergedName.length()-1);
-                	int averageAgeRounded = (int) Math.round(averageAge);
-                	int averageStrengthRounded = (int) Math.round(averageStrength);
-                	// create merged player
-                	int mergedPlayerNr = PlayerUtils.searchHighestPlayerNr(players)+1;
-                	if (players.containsKey(mergedPlayerNr)) {
-                		System.out.println("CAUTION: players already contains the new mergedPlayerNr="+mergedPlayerNr+" --> Aborting...");
-                		System.exit(0);
-                	}
-                	// CAUTION: here, the player constructor receives a "false", so that the merged player does not point to itself automatically as it is
-                	// not an actual player but only confines a player union
-                	// --> else, a new physical player would be created with a name formed of a combination of its merger players
-                	Player mergedPlayer = new Player(mergedName, mergedPlayerNr, averageAgeRounded, averageStrengthRounded,
-                			minSlots, highestMaxGroupSize, category, lowestMaxAgeDiff, lowestMaxClassDiff, false);
-                	// fit merged player with only the mutual desired slots from its individual merger players
-                	// add all desired slots from first merger player and remove any of the slots if they are not explicitly featured in all other players
-                	List<Slot> mutuallyDesiredSlots = new ArrayList<Slot>();
-                	for (int playerNr : mergerGroup) {
-                		Player player = players.get(playerNr);
-                		if (mutuallyDesiredSlots.size()==0) {
-                			mutuallyDesiredSlots.addAll(player.desiredSlots);
-                		}
-                		else {
-                			Iterator<Slot> candidateSlotIter = mutuallyDesiredSlots.iterator();
-                			mutualDesiredSlotsLoop:
-                			while(candidateSlotIter.hasNext()) {
-                				Slot candidateSlot = candidateSlotIter.next();
-                				for (Slot playerSlot : player.desiredSlots) {
-                					if (candidateSlot.isSameTimeAndDay(playerSlot)) {
-                						continue mutualDesiredSlotsLoop;
-                					}
-                				}
-                				// if code arrives here, the candidateSlot is not featured in another player's desired slots and therefore removed!
-                				candidateSlotIter.remove();
-                			}
-                		}
-                	}
-                	// add new merged player to players, add individual merger players as subProfiles and remove the latter from the general players list!
-                	if (mutuallyDesiredSlots.size()==0) {
-                		// if no mutual slot could be found, a merged player is not of use...
-                		System.out.println("CAUTION: mergedPlayer has no more mutual desired slots. Therefore, not merging corresponding players!");
-                	}
-                	else {
-                		mergedPlayer.desiredSlots.addAll(mutuallyDesiredSlots);
-                		players.put(mergedPlayer.playerNr, mergedPlayer);
-                		for (int playerNr : mergerGroup) {
-                			Player subplayerProfile = players.get(playerNr);
-                			mergedPlayer.subPlayerProfiles.add(players.remove(subplayerProfile.playerNr));	// removal and adding in one :-)
-                		}
-                	}
-                }
+                PlayerUtils.mergePlayers2Groups(players, mergedGroupsList);
         	}
         	else {
         		// go through players and mark them with all their frozenMustHavePeers (mark both mutually)
@@ -712,6 +612,119 @@ public class PlayerUtils {
 		return players;
 	}
 	
+	public static void mergePlayers2Groups(Map<Integer, Player> players, List<List<Integer>> mergedGroupsList) {
+		// at this point we have all groups of players that are to be merged --> now merge the actual players
+        // make an average age, strength, category for the "merged" player and use only slots that have been desired by all players to be merged!
+		groupLoop:
+		for (List<Integer> mergerGroup : mergedGroupsList) {
+        	// if mergedGroup contains of only a single player for some reason, must not merge single player as it is represented perfectly by itself
+        	if (mergerGroup.size()==1) {
+        		System.out.println("Single player in mergerGroup. Continuing with next mergerGroup.");
+        		continue;                		
+        	}
+        	double averageAge = 0.0;
+        	double averageStrength = 0.0;
+        	int minSlots = Integer.MAX_VALUE;
+        	int highestMaxGroupSize = 0;
+        	int lowestMaxAgeDiff = Integer.MAX_VALUE;
+        	int lowestMaxClassDiff = Integer.MAX_VALUE;
+        	String mergedName = "";
+        	String category = "";
+        	for (int playerNr : mergerGroup) {
+        		// possibly, the player has already been removed from the players list while merging it into a playerGroup with another player --> advance
+        		if (!players.containsKey(playerNr)) {
+        			continue groupLoop;
+        		}
+        		Player player = players.get(playerNr);
+        		System.out.println(player.toString());
+        		mergedName += (player.name+"/");
+        		averageAge += 1.0*player.age/mergerGroup.size();
+        		averageStrength += 1.0*player.strength/mergerGroup.size();
+        		if (player.nSlots<minSlots) {
+        			minSlots = player.nSlots;
+        		}
+        		if (player.maxAgeDiff<lowestMaxAgeDiff) {
+        			lowestMaxAgeDiff = player.maxAgeDiff;
+        		}
+        		if (player.maxClassDiff<lowestMaxClassDiff) {
+        			lowestMaxClassDiff = player.maxClassDiff;
+        		}
+        		if (player.maxGroupSize>highestMaxGroupSize) {
+        			highestMaxGroupSize = player.maxGroupSize;
+        		}
+        		if (player.category.equals("default")) {
+        			category = "default";
+        		}
+        		else if (Arrays.asList("R","O","G").contains(player.category)) {
+        			if (!category.equals("default")) {
+        				category = player.category;
+        			}
+        		}
+        		else if (player.category.equals("TC")) {
+        			if (!Arrays.asList("default","R","O","G").contains(category)) {
+        				category = "TC";
+        			}
+        		}
+        		else {
+        			System.out.println("This player has unknown category --> may jeopardize setting known category for merged group (PlayerUtils)");
+        		}
+        	}
+        	// have to remove last "/" from the concatenated name
+        	mergedName = mergedName.substring(0, mergedName.length()-1);
+        	int averageAgeRounded = (int) Math.round(averageAge);
+        	int averageStrengthRounded = (int) Math.round(averageStrength);
+        	// create merged player
+        	int mergedPlayerNr = PlayerUtils.searchHighestPlayerNr(players)+1;
+        	if (players.containsKey(mergedPlayerNr)) {
+        		System.out.println("CAUTION: players already contains the new mergedPlayerNr="+mergedPlayerNr+" --> Aborting...");
+        		System.exit(0);
+        	}
+        	// CAUTION: here, the player constructor receives a "false", so that the merged player does not point to itself automatically as it is
+        	// not an actual player but only confines a player union
+        	// --> else, a new physical player would be created with a name formed of a combination of its merger players
+        	Player mergedPlayer = new Player(mergedName, mergedPlayerNr, averageAgeRounded, averageStrengthRounded,
+        			minSlots, highestMaxGroupSize, category, lowestMaxAgeDiff, lowestMaxClassDiff, false);
+        	// fit merged player with only the mutual desired slots from its individual merger players
+        	// add all desired slots from first merger player and remove any of the slots if they are not explicitly featured in all other players
+        	List<Slot> mutuallyDesiredSlots = new ArrayList<Slot>();
+        	for (int playerNr : mergerGroup) {
+        		Player player = players.get(playerNr);
+        		if (mutuallyDesiredSlots.size()==0) {
+        			mutuallyDesiredSlots.addAll(player.desiredSlots);
+        		}
+        		else {
+        			Iterator<Slot> candidateSlotIter = mutuallyDesiredSlots.iterator();
+        			mutualDesiredSlotsLoop:
+        			while(candidateSlotIter.hasNext()) {
+        				Slot candidateSlot = candidateSlotIter.next();
+        				for (Slot playerSlot : player.desiredSlots) {
+        					if (candidateSlot.isSameTimeAndDay(playerSlot)) {
+        						continue mutualDesiredSlotsLoop;
+        					}
+        				}
+        				// if code arrives here, the candidateSlot is not featured in another player's desired slots and therefore removed!
+        				candidateSlotIter.remove();
+        			}
+        		}
+        	}
+        	// add new merged player to players, add individual merger players as subProfiles and remove the latter from the general players list!
+        	if (mutuallyDesiredSlots.size()==0) {
+        		// if no mutual slot could be found, a merged player is not of use...
+        		System.out.println("CAUTION: mergedPlayer has no more mutual desired slots. Therefore, not merging corresponding players!");
+        	}
+        	else {
+        		mergedPlayer.desiredSlots.addAll(mutuallyDesiredSlots);
+        		players.put(mergedPlayer.playerNr, mergedPlayer);
+        		for (int playerNr : mergerGroup) {
+        			Player subplayerProfile = players.get(playerNr);
+        			mergedPlayer.subPlayerProfiles.add(players.remove(subplayerProfile.playerNr));	// removal and adding in one :-)
+        		}
+        	}
+        }
+		
+	}
+
+	@SuppressWarnings("unused")
 	private static Integer createUniformDistribution(int i, int j) {
 		int diff = j-i;
 		return i+(new Random().nextInt(diff+1));
@@ -864,12 +877,7 @@ public class PlayerUtils {
 		public static List<Player> makeSubplayerListFromPlayersMap(Map<Integer, Player> players) {
 			List<Player> playerList = new ArrayList<Player>();
 			for (Player player : players.values()) {
-				if (player.subPlayerProfiles.size()==0) {
-					playerList.add(player);
-				}
-				else {
-					playerList.addAll(player.subPlayerProfiles);
-				}
+				playerList.addAll(player.subPlayerProfiles);
 			}
 			return playerList;
 		}
@@ -877,12 +885,7 @@ public class PlayerUtils {
 		public static List<Player> makeSubplayerListFromPlayersList(List<Player> players) {
 			List<Player> playerList = new ArrayList<Player>();
 			for (Player player : players) {
-				if (player.subPlayerProfiles.size()==0) {
-					playerList.add(player);
-				}
-				else {
-					playerList.addAll(player.subPlayerProfiles);
-				}
+				playerList.addAll(player.subPlayerProfiles);
 			}
 			return playerList;
 		}
@@ -894,6 +897,36 @@ public class PlayerUtils {
 				}
 			}
 			return false;
+		}
+
+		public static void randomlyMakeSomeMergers(Map<Integer, Player> players) {
+			
+			List<List<Integer>> mergedGroupsList = new ArrayList<List<Integer>>();
+			for (Player player : players.values()) {
+				// if the player has linkable players make a mergerGroup with the first linkablePlayer in the group and a certain probability
+				if (new Random().nextDouble()<1.0 && player.linkablePlayers.size()>0 && player.maxGroupSize==4) {
+					List<Integer> mergerGroup = new ArrayList<Integer>();
+					mergerGroup.add(player.playerNr);
+					int n = 0;
+					while(mergerGroup.size()<2 && n<player.linkablePlayers.size()) {
+						if (players.get(player.linkablePlayers.get(n)).maxGroupSize==4){
+							mergerGroup.add(player.linkablePlayers.get(n));							
+						}
+						n++;
+					}
+					if (mergerGroup.size()==2) {
+						mergedGroupsList.add(mergerGroup);						
+					}
+					else {
+						continue;
+					}
+				}
+			}
+			
+			PlayerUtils.mergePlayers2Groups(players, mergedGroupsList);
+			
+			PlayerUtils.findLinkablePlayers(players);
+
 		}
 
 }

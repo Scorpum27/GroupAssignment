@@ -712,6 +712,7 @@ public class ScheduleWriter {
 				String samePlayerProfiles = "Gleicher Spieler hat noch andere Profile ";
 				for (int s : player.samePersonPlayerProfiles) {
 					Player samePlayer = this.schedule.players.get(s);
+					// System.out.println(samePlayer.playerNr + " " + samePlayer.name);
 					for (Slot slot : samePlayer.selectedSlots) {
 						samePlayerProfiles += "("+Slot.dayNr2Name(slot.weekdayNr)+"-"+slot.time+"h-Court"+slot.courtNr+")";
 					}
