@@ -7,7 +7,6 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 public class Demo {
 
-	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws EncryptedDocumentException, InvalidFormatException, IOException {
 
 		int i = 7;

@@ -287,9 +287,9 @@ public class PlayerUtils {
 		return sortedPlayers;
 	}
 
-	public static Map<Integer, Player> loadPlayers(String file, boolean considerMustHavePeerWishes, boolean mergeMustBePeers2OnePlayer)
+	public static Map<Integer, Player> loadPlayers(String file, boolean considerMustHavePeerWishes, boolean mergeMustBePeers2OnePlayer, boolean enableMarketingMode)
 			throws EncryptedDocumentException, InvalidFormatException, IOException {
-
+		
 		Date date = new Date();
 		Calendar calendar = new GregorianCalendar();
 		calendar.setTime(date);
@@ -343,45 +343,61 @@ public class PlayerUtils {
         		//  --> can only be combined with same strength, which denotes the exact category (inside the category there is no differentiation)
         		// Normal Rx or Nx players have maxClassDiff=2 and maxAgeDiff=3
         		if (strengthString.equals("TC")) {
-        			strength = 20;
-        			category = "TC";
-        			maxAgeDiff = 100;
-        			maxClassDiff = 0;
-//        			strength = createUniformDistribution(7,9);
-//        			category = "default";
-//        			maxAgeDiff = 3;
-//        			maxClassDiff = 2;
+        			if (!enableMarketingMode) {
+        				strength = 20;
+        				category = "TC";
+        				maxAgeDiff = 100;
+        				maxClassDiff = 0;        				
+        			}
+        			else {
+        				strength = createUniformDistribution(7,9);
+        				category = "default";
+        				maxAgeDiff = 3;
+        				maxClassDiff = 2;  
+
+        			}
         		}
         		else if (strengthString.equals("G")){
-        			strength = 21;
-        			category = "G";
-        			maxAgeDiff = 100;
-        			maxClassDiff = 0;
-//        			strength = createUniformDistribution(7,9);
-//        			category = "default";
-//        			maxAgeDiff = 3;
-//        			maxClassDiff = 2;
+        			if (!enableMarketingMode) {
+        				strength = 21;
+        				category = "G";
+        				maxAgeDiff = 100;
+        				maxClassDiff = 0;        				
+        			}
+        			else {
+        			strength = createUniformDistribution(7,9);
+        			category = "default";
+        			maxAgeDiff = 3;
+        			maxClassDiff = 2;        				
+        			}
         		}
-        		
         		else if (strengthString.equals("O")){
-        			strength = 22;
-        			category = "O";
-        			maxAgeDiff = 100;
-        			maxClassDiff = 0;
-//        			strength = createUniformDistribution(7,9);
-//        			category = "default";
-//        			maxAgeDiff = 3;
-//        			maxClassDiff = 2;
+        			if (!enableMarketingMode) {
+        				strength = 22;
+        				category = "O";
+        				maxAgeDiff = 100;
+        				maxClassDiff = 0;        			
+        			}
+        			else {
+        				strength = createUniformDistribution(7,9);
+        				category = "default";
+        				maxAgeDiff = 3;
+        				maxClassDiff = 2;
+        			}
         		}
         		else if (strengthString.equals("R")){
-        			strength = 23;
-        			category = "R";
-        			maxAgeDiff = 100;
-        			maxClassDiff = 0;
-//        			strength = createUniformDistribution(7,9);
-//        			category = "default";
-//        			maxAgeDiff = 3;
-//        			maxClassDiff = 2;
+        			if (!enableMarketingMode) {
+            			strength = 23;
+            			category = "R";
+            			maxAgeDiff = 100;
+            			maxClassDiff = 0;	
+        			}
+        			else {
+        			strength = createUniformDistribution(7,9);
+        			category = "default";
+        			maxAgeDiff = 3;
+        			maxClassDiff = 2;        				
+        			}
         		}
         		else if (strengthString.contains("R")) {
         			strength = Integer.parseInt(strengthString.substring(1));
@@ -415,16 +431,18 @@ public class PlayerUtils {
         		Integer maxGroupSize;
         		if (strength==20) {
         			// XXX maybe this is not even necessary as the 8 should be typed into the registration table!
-        			maxGroupSize = 8;
+        			if (!enableMarketingMode) {
+        				maxGroupSize = 8;        				
+        			}
+        			else {
+        				maxGroupSize = 4;
+        			}
         		}
         		else {
         			System.out.println(r);
         			maxGroupSize = Integer.parseInt(dataFormatter.formatCellValue(row.getCell(4)));        			
         		}
         		
-//        		if (maxGroupSize>4) {
-//        			maxGroupSize = 4;
-//        		}
 
         		Player newPlayer = new Player(name, playerNr, age, strength, nSlots, maxGroupSize, category, maxAgeDiff, maxClassDiff, true);
         		newPlayer.notes = playerNotes;

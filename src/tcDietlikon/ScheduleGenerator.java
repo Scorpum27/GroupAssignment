@@ -81,6 +81,7 @@ public class ScheduleGenerator {
 		boolean considerMustHavePeerWishes = true;	// set this true to consider wishes with whom a player wants to be in a group
 		boolean mergeMustBePeers2OnePlayer = true;	// set this true if want to use strategy where one player may have separate subPlayerProfiles
 													// set this to false to not combine player profiles but instead link peer players by list references
+		boolean enableMarketingMode = false;
 
 	// create or load players
 		Map<Integer,Player> players = new HashMap<Integer,Player>();
@@ -100,7 +101,7 @@ public class ScheduleGenerator {
 		else {
 			// load players from actual TCD registration form
 			String playerRegistrationFile = "PlayersTCDietlikonWinter2018.xlsx";
-			players = PlayerUtils.loadPlayers(playerRegistrationFile, considerMustHavePeerWishes, mergeMustBePeers2OnePlayer);
+			players = PlayerUtils.loadPlayers(playerRegistrationFile, considerMustHavePeerWishes, mergeMustBePeers2OnePlayer, enableMarketingMode);
 		}
 
 	// for each player find all other players that can be assigned to the same group
@@ -108,7 +109,7 @@ public class ScheduleGenerator {
 		// PlayerUtils.randomlyMakeSomeMergers(players);
 		
 	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
-		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";
+		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";	// ALTERNATIVE: Belegung_TennishalleDietlikonextended
 		String fixedGroupsFile = "Fixe_Gruppen.xlsx";
 		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile, initialPlacementStrategy, fixedGroupsFile, useFixedSlotFile, useFullSlotFilling);
 		schedule.verifyCompliance(players);
@@ -123,9 +124,9 @@ public class ScheduleGenerator {
 		schedule.verifyCompliance(players);
 		
 	// write schedule
-		ScheduleWriter scheduleWriter = new ScheduleWriter(schedule);
-		scheduleWriter.write("EinteilungenTennisschuleKeller_2018Winter.xlsx");
-		scheduleWriter.writeProposal("PlayerOverview_FurtherOptimization.xlsx");
+		ScheduleWriter scheduleWriter = new ScheduleWriter(schedule, enableMarketingMode);
+		scheduleWriter.write("EinteilungenTennisschuleKeller_2018Winter.xlsx", enableMarketingMode);
+		scheduleWriter.writeProposal("PlayerOverview_FurtherOptimization.xlsx", enableMarketingMode);
 	}
 
 }

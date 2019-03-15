@@ -5,8 +5,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -50,7 +52,37 @@ public class ScheduleWriter {
 		this.schedule = schedule;
 	}
 	
-	public void write(String fileName) throws IOException {
+	public ScheduleWriter(Schedule schedule, boolean enableMarketingMode) {
+		this();
+		this.schedule = schedule;
+		
+		if (enableMarketingMode) {
+			double removeUnsatisfiedPlayerProbability = 0.6;
+			Iterator<Player> playerIter = this.schedule.players.values().iterator();
+			playerLoop:
+			while(playerIter.hasNext()) {
+				Player player = playerIter.next();
+				if (((player.selectedSlots.size()<player.nSlots))	// player.maxGroupSize==1 && 
+						&& new Random().nextDouble()<removeUnsatisfiedPlayerProbability) {
+					playerIter.remove();
+					continue playerLoop;
+				}
+				for (Slot slot : player.selectedSlots) {
+					if (player.maxGroupSize-slot.getSize()>1 && new Random().nextDouble()<removeUnsatisfiedPlayerProbability) {
+						for (Slot selectedSlot : player.selectedSlots) {
+							selectedSlot.players.remove(player.playerNr);
+						}
+						playerIter.remove();
+						continue playerLoop;
+					}
+				}
+			}
+		}
+	}
+	
+	public void write(String fileName, boolean enableMarketingMode) throws IOException {
+		
+		double hideUnsatisfiedPlayerProbability = 0.7;
 		
 		XMLOps.writeToFile(this.schedule, "FinalSchedule.xml");
 		XMLOps.writeToFile(this.schedule.players, "FinalSchedulePlayers.xml");
@@ -79,7 +111,12 @@ public class ScheduleWriter {
 						slotCell.setCellValue(this.schedule.slot2name(day,time,court)+" ("+this.schedule.dayTimeCourt2slotId(day, time, court)+")");
 					}
 					else {
-						slotCell.setCellValue("Tennishalle Halsrüti AG");
+						if (enableMarketingMode) {
+							slotCell.setCellValue("Platz/Lehrer nicht verfügbar");							
+						}
+						else {
+							slotCell.setCellValue("Tennishalle Halsrüti AG");							
+						}
 						// mark the cells that are not available for the tennis school as "blocked"
 						for (int s=1; s<=8; s++) {
 							Row blockedCellRow = rows.get(refRowNr+s);
@@ -103,6 +140,9 @@ public class ScheduleWriter {
 			refRowNr = this.schedule.slot2row(slot.time);
 			int playerNr = 1;
 			for (Player playerUnit : slot.players.values()) {
+				if (playerUnit.maxGroupSize-slot.getSize()>1 && new Random().nextDouble()<hideUnsatisfiedPlayerProbability && enableMarketingMode) {
+					continue;
+				}
 				// a playerUnit may contain more than one player
 				// if so, make a list of subProfiles that must be listed individually in the slot
 				// else, subprofiles list is just the single player in the unit i.e. the unit itself
@@ -176,6 +216,9 @@ public class ScheduleWriter {
 						newColorCellStyle.setFillForegroundColor(new XSSFColor(efficiencyColor));
 						newColorCellStyle.setFillBackgroundColor(new XSSFColor(efficiencyColor));
 						nameCell.setCellStyle(newColorCellStyle);
+						if (enableMarketingMode) {
+							nameCell.setCellValue("Spieler "+player.playerNr);
+						}
 					}
 					Cell maxGroupSizeCell = playerRow.createCell(refColNr + 1);
 					maxGroupSizeCell.setCellValue(player.maxGroupSize);
@@ -199,7 +242,7 @@ public class ScheduleWriter {
 		Row rrow;
 		Cell nameCell;
 		Cell classCell;
-		Cell ageCell;
+		// Cell ageCell;
 		Cell maxGroupSizeCell;
 		for (Player playerUnit : this.schedule.players.values()) {
 			int nUnsatisfiedSlots = playerUnit.nSlots-playerUnit.selectedSlots.size();
@@ -222,7 +265,12 @@ public class ScheduleWriter {
 						rrow = sheet.getRow(rr);					
 					}
 					nameCell = rrow.createCell(col+2);
-					nameCell.setCellValue(player.age + " - " + player.name);
+					if (!enableMarketingMode) {
+						nameCell.setCellValue(player.age + " - " + player.name);						
+					}
+					else {
+						nameCell.setCellValue(player.age + " - Spieler " + player.playerNr);
+					}
 					nameCell.setCellStyle(undesiredSlotStyle);
 					Cell borderCell = rrow.createCell(col+3);
 					borderCell.setCellStyle(leftBorderCellStyle);
@@ -313,7 +361,12 @@ public class ScheduleWriter {
 		// Make header after resizing so that first column is not super wide due to long title of first headerCell
 		Row headerRow = rows.get(0);
 		Cell titleCell = headerRow.createCell(0);
-		titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining");
+		if (enableMarketingMode) {
+			titleCell.setCellValue("Tennisschule Optimierte Einteilung");			
+		}
+		else {
+			titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining");			
+		}
 		titleCell.setCellStyle(headerCellStyle);
 		Cell totalSlotsCell = headerRow.createCell(6);
 		totalSlotsCell.setCellValue("Total Gruppen (unter Vorbehalt nicht vollständig gesetzter Spieler) = "+this.schedule.totalUsedSots());
@@ -325,7 +378,7 @@ public class ScheduleWriter {
 		this.defaultWorkbook.close();
 	}
 
-	public void writeProposal(String proposalFileName) throws IOException {
+	public void writeProposal(String proposalFileName, boolean enableMarketingMode) throws IOException {
 		
 		// make lists of unsatisfied players (undesirable or too few assignments)
 		List<Player> undesirablyPlacedPlayers = new ArrayList<Player>();
@@ -504,7 +557,7 @@ public class ScheduleWriter {
 		}
 		else {
 			for (Player player : notEnoughSlotsPlayers) {
-				refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+				refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows, enableMarketingMode);
 				
 				// check if another same player profile must be placed here!!
 				// XXX ...
@@ -530,7 +583,7 @@ public class ScheduleWriter {
 		}
 		else {
 			for (Player player : undesirablyPlacedPlayers) {
-				refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+				refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows, enableMarketingMode);
 				// check if another same player profile must be placed here!!
 				// XXX ...
 				processedPlayers.add(player.playerNr);
@@ -558,7 +611,7 @@ public class ScheduleWriter {
 						"CAUTION: Player is left in desirable category although it has undesirable slots! It is player with ID="
 								+ player.playerNr);
 			}
-			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows);
+			refRowNr = this.writePlayer2Table(player, refRowNr, category, chapterTitle, rows, enableMarketingMode);
 
 			// check if another same player profile must be placed here!!
 			// XXX ...
@@ -580,7 +633,12 @@ public class ScheduleWriter {
 		headerCellStyle.setFont(headerFont);
 		Row headerRow = rows.get(0);
 		Cell titleCell = headerRow.createCell(0);
-		titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining Übersicht & Vorschläge");
+		if (enableMarketingMode) {
+			titleCell.setCellValue("Tennisschule - Übersicht & Vorschläge");			
+		}
+		else {
+			titleCell.setCellValue("Tennisschule Cyrill Keller - Wintertraining Übersicht & Vorschläge");			
+		}
 		titleCell.setCellStyle(headerCellStyle);
 
 		FileOutputStream fileOut = new FileOutputStream(proposalFileName);
@@ -685,7 +743,7 @@ public class ScheduleWriter {
 		
 	}
 
-	private int writePlayer2Table(Player playerUnit, int refRowNr, int category, String chapterTitle, List<Row> rows) {
+	private int writePlayer2Table(Player playerUnit, int refRowNr, int category, String chapterTitle, List<Row> rows, boolean enableMarketingMode) {
 		
 		// playerUnit may consist of several players
 		// if so, make a list of subProfiles that must be listed individually
@@ -701,7 +759,12 @@ public class ScheduleWriter {
 			Cell nameCell1 = rows.get(refRowNr).createCell(0);
 			Cell nameCell2 = rows.get(refRowNr).createCell(1);
 			nameCell1.setCellValue("Name");
-			nameCell2.setCellValue(player.name);
+			if (enableMarketingMode) {
+				nameCell2.setCellValue("Spieler "+player.playerNr);
+			}
+			else {
+				nameCell2.setCellValue(player.name);				
+			}
 			nameCell1.setCellStyle(cellStyles.get(category));
 			nameCell2.setCellStyle(cellStyles.get(category));
 			refRowNr++;
@@ -711,6 +774,10 @@ public class ScheduleWriter {
 			if (player.samePersonPlayerProfiles.size()>0) {
 				String samePlayerProfiles = "Gleicher Spieler hat noch andere Profile ";
 				for (int s : player.samePersonPlayerProfiles) {
+					// during marketing mode it might be possible that an unsatisfied player has been removed and therefore is no more present (avoid nullPointer)
+					if (enableMarketingMode && !this.schedule.players.containsKey(s)) {
+						continue;
+					}
 					Player samePlayer = this.schedule.players.get(s);
 					// System.out.println(samePlayer.playerNr + " " + samePlayer.name);
 					for (Slot slot : samePlayer.selectedSlots) {
