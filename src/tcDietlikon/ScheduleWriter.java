@@ -1,6 +1,7 @@
 package tcDietlikon;
 
 import java.awt.Color;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -930,6 +931,38 @@ public class ScheduleWriter {
 		}
 		
 		return refRowNr;
+	}
+
+	public int writeListOfUnsatisfiedPlayers(boolean saveListOfUnsatisfiedPlayerNrs, String fileLocation) throws IOException {
+		
+		List<Integer> unsatisfiedPlayerList = new ArrayList<Integer>();
+		for (Player player : this.schedule.players.values()) {
+			subplayerLoop:
+			for (Player subplayer : player.subPlayerProfiles) {
+				// mark player as unsatisfied if min one of its selected slots is poorly filled (two or more free spaces!)
+				for (Slot selectedSlot : subplayer.selectedSlots) {
+					if (selectedSlot.getSize()<=subplayer.maxGroupSize-2 && !subplayer.category.equals("TC")) {
+						unsatisfiedPlayerList.add(subplayer.playerNr);
+						continue subplayerLoop;
+					}
+				}
+				// mark player as unsatisfied if it could not be assigned as many times as it desires
+				if (subplayer.selectedSlots.size() < subplayer.nSlots) {
+					unsatisfiedPlayerList.add(subplayer.playerNr);
+					continue subplayerLoop;
+				}
+			}
+		}
+		int unfillednessValue = this.schedule.calculateUnfillednessValue();
+		if (saveListOfUnsatisfiedPlayerNrs) {
+			XMLOps.writeToFile(unsatisfiedPlayerList, fileLocation);
+			XMLOps.writeToFile(unfillednessValue, "scheduleUnfillednessValue.xml");
+		}
+		System.out.println("Number of players in unsatisfied list = " + unsatisfiedPlayerList.size());
+		Log.write("unfillnessFactor = "+unfillednessValue);
+//		return unsatisfiedPlayerList.size();
+		return unfillednessValue;
+
 	}
 	
 }

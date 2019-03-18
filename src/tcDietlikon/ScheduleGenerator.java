@@ -59,8 +59,13 @@
 
 package tcDietlikon;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.EncryptedDocumentException;
@@ -70,6 +75,7 @@ public class ScheduleGenerator {
 
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) throws IOException, EncryptedDocumentException, InvalidFormatException {
+		PrintWriter pwDefault = new PrintWriter("LogDefault.txt");
 	
 		int pushLevel = 5;
 		boolean createNewPlayerSet = false;
@@ -78,55 +84,122 @@ public class ScheduleGenerator {
 		boolean doNotLoadSelectedSlots = true;
 		boolean loadPlayers = true;
 		boolean useFullSlotFilling = false;
+		String slotFillingOder = "most2leastDemanded";
+		String playerFillingOrder = "most2leastLinkable";
+		boolean writeSchedule2Files = true;
 		boolean considerMustHavePeerWishes = true;	// set this true to consider wishes with whom a player wants to be in a group
 		boolean mergeMustBePeers2OnePlayer = true;	// set this true if want to use strategy where one player may have separate subPlayerProfiles
 													// set this to false to not combine player profiles but instead link peer players by list references
-		boolean enableMarketingMode = false;
+		boolean enableMarketingMode = false;		// loads complicated groups such as R, G, O as standard R/N players; does not show all unsatisfied placements
+		boolean saveListOfUnsatisfiedPlayerNrs = false;	// saves a list of unsatisfied players in order to load them next assignment and handle with priority
+		boolean usePriorityPlayersStrategy = false;		// loads a list of previously unsatisfied players to give them special priority in this assignment run
+		boolean testPrioPlayersIterativelyForImprovement = false;
+		
+		List<Integer> initialPriorityPlayers = new ArrayList<Integer>();			// players forced to be placed first
+		List<Integer> confirmedPriorityPlayers = new ArrayList<Integer>();			// prio players that have shown an overall assignement improvement if placed at front
+		initialPriorityPlayers.addAll(XMLOps.readFromFile(initialPriorityPlayers.getClass(), "priorityPlayers.xml"));			
+		
+		if (!testPrioPlayersIterativelyForImprovement) {
+			if (usePriorityPlayersStrategy) {
+				confirmedPriorityPlayers.addAll(initialPriorityPlayers);				
+			}
+			writeSchedule2Files = true;
+			generateSchedule(pushLevel, createNewPlayerSet, useFixedSlotFile, initialPlacementStrategy, doNotLoadSelectedSlots, loadPlayers,
+					useFullSlotFilling, slotFillingOder, playerFillingOrder, considerMustHavePeerWishes, mergeMustBePeers2OnePlayer, enableMarketingMode,
+					saveListOfUnsatisfiedPlayerNrs, confirmedPriorityPlayers, writeSchedule2Files);
+		}
+		else {
+			int unfillednessValue = XMLOps.readFromFile(Integer.class, "scheduleUnfillednessValue.xml");
+			int nrLastRoundUnsatPlayers = unfillednessValue; //	initialPriorityPlayers.size();
+			writeSchedule2Files = false;
+			for (int prioPlayer : initialPriorityPlayers) {
+				// this condition avoids writing the schedule after every iteration, but allows to write it once at  the very end
+				if (prioPlayer==initialPriorityPlayers.get(initialPriorityPlayers.size()-1)) {
+					writeSchedule2Files = true;
+				}
+				// add player to confirmedPrioPlayers to check if it leads to an improvement if this player is placed at the front of the queue
+				// if it does not lead to an improvement, 
+				confirmedPriorityPlayers.add(0,prioPlayer);
+				Log.write("PrioPlayers: Size="+confirmedPriorityPlayers.size()+" - "+confirmedPriorityPlayers.toString());
+				int nrUnsatPlayersAtEnd = generateSchedule(pushLevel, createNewPlayerSet, useFixedSlotFile, initialPlacementStrategy, doNotLoadSelectedSlots, loadPlayers,
+						useFullSlotFilling, slotFillingOder, playerFillingOrder, considerMustHavePeerWishes, mergeMustBePeers2OnePlayer, enableMarketingMode,
+						saveListOfUnsatisfiedPlayerNrs, confirmedPriorityPlayers, writeSchedule2Files);
+				if (nrUnsatPlayersAtEnd < nrLastRoundUnsatPlayers) {
+					Log.write("improvement achieved - number of players unsatisfied NEW/OLD= "+nrUnsatPlayersAtEnd+"/"+nrLastRoundUnsatPlayers);
+					nrLastRoundUnsatPlayers = nrUnsatPlayersAtEnd;
+					// improvement achieved: do nothing and just leave prioPlayer at the front of the queue for future assignments
+				} else {
+					// no improvement by keeping this player as prio --> remove from confirmedPrioPlayerList
+					Log.write("No improvement achieved. Removing prioCandidate again (see below)");
+					confirmedPriorityPlayers.remove(0);
+					Log.write("PrioPlayers: Size="+confirmedPriorityPlayers.size()+" - "+confirmedPriorityPlayers.toString());
+				}
+				// xxx: has issues removing the Player.class.getName(). check hpw
+			}
+			
+		}
+		
+	}
 
-	// create or load players
-		Map<Integer,Player> players = new HashMap<Integer,Player>();
+	@SuppressWarnings("unchecked")
+	private static int generateSchedule(int pushLevel, boolean createNewPlayerSet, boolean useFixedSlotFile, int initialPlacementStrategy,
+			boolean doNotLoadSelectedSlots, boolean loadPlayers, boolean useFullSlotFilling, String slotFillingOder, String playerFillingOrder,
+			boolean considerMustHavePeerWishes, boolean mergeMustBePeers2OnePlayer, boolean enableMarketingMode, boolean saveListOfUnsatisfiedPlayerNrs,
+			List<Integer> confirmedPriorityPlayers, boolean writeSchedule2Files) throws EncryptedDocumentException, InvalidFormatException, IOException {
+		
+		// create or load players
+		Map<Integer, Player> players = new HashMap<Integer, Player>();
 		// create random players with a reasonable distribution
 		if (!loadPlayers) {
 			if (createNewPlayerSet) {
 				int nPlayers = 200;
 				players = PlayerUtils.createPlayers(nPlayers);
 				XMLOps.writeToFile(players, "samplePlayers.xml");
-			}
-			else {
-				// load sample players from file			
+			} else {
+				// load sample players from file
 				players.putAll(XMLOps.readFromFile(players.getClass(), "samplePlayers_BENCHMARK.xml")); // samplePlayers_BENCHMARK
-				if (doNotLoadSelectedSlots) { for (Player player : players.values()) {player.selectedSlots.clear();} }
+				if (doNotLoadSelectedSlots) {
+					for (Player player : players.values()) {
+						player.selectedSlots.clear();
+					}
+				}
 			}
-		}
-		else {
+		} else {
 			// load players from actual TCD registration form
 			String playerRegistrationFile = "PlayersTCDietlikonWinter2018.xlsx";
 			players = PlayerUtils.loadPlayers(playerRegistrationFile, considerMustHavePeerWishes, mergeMustBePeers2OnePlayer, enableMarketingMode);
 		}
 
-	// for each player find all other players that can be assigned to the same group
+		// for each player find all other players that can be assigned to the same group
 		PlayerUtils.findLinkablePlayers(players);
 		// PlayerUtils.randomlyMakeSomeMergers(players);
-		
-	// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
-		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx";	// ALTERNATIVE: Belegung_TennishalleDietlikonextended
+
+		// create and fill in initial schedule (may follow specific strategies here instead of just filling in randomly)
+		String courtScheduleFile = "Belegung_TennishalleDietlikon.xlsx"; // ALTERNATIVE: Belegung_TennishalleDietlikonextended
 		String fixedGroupsFile = "Fixe_Gruppen.xlsx";
-		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile, initialPlacementStrategy, fixedGroupsFile, useFixedSlotFile, useFullSlotFilling);
+		Schedule schedule = Schedule.initializeSchedule(players, courtScheduleFile, initialPlacementStrategy,
+				fixedGroupsFile, useFixedSlotFile, useFullSlotFilling, slotFillingOder, playerFillingOrder, confirmedPriorityPlayers);
 		schedule.verifyCompliance(players);
 
-	// refine schedule to be more efficient
+		// refine schedule to be more efficient
 		schedule.calculateEfficiency(players, "Schedule efficiency BEFORE refinement:");
 		schedule.refine(players, pushLevel);
-		schedule.cleanUp();	// equip the supPlayerProfiles with the desired and selected slots of their mainProfile that have been assigned during the optimization
+		// equip the supPlayerProfiles with the desired and selected slots of their mainProfile that have been assigned during the optimization
+		schedule.cleanUp();
 		schedule.calculateEfficiency(players, "Schedule efficiency AFTER refinement:");
-	
-	// verify compliance of slot and player assignment -> slots feasible and players satisfied
+
+		// verify compliance of slot and player assignment -> slots feasible and players satisfied
 		schedule.verifyCompliance(players);
-		
-	// write schedule
+
+		// write schedule
 		ScheduleWriter scheduleWriter = new ScheduleWriter(schedule, enableMarketingMode);
-		scheduleWriter.write("EinteilungenTennisschuleKeller_2018Winter.xlsx", enableMarketingMode);
-		scheduleWriter.writeProposal("PlayerOverview_FurtherOptimization.xlsx", enableMarketingMode);
+		if (writeSchedule2Files) {
+			scheduleWriter.write("EinteilungenTennisschuleKeller_2018Winter.xlsx", enableMarketingMode);
+			scheduleWriter.writeProposal("PlayerOverview_FurtherOptimization.xlsx", enableMarketingMode);			
+		}
+		int nrUnsatPlayersAtEnd = scheduleWriter.writeListOfUnsatisfiedPlayers(saveListOfUnsatisfiedPlayerNrs, "priorityPlayers.xml");
+		
+		return nrUnsatPlayersAtEnd;
 	}
 
 }

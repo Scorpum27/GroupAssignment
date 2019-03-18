@@ -258,7 +258,7 @@ public class PlayerUtils {
 	}
 
 	// sort players by their linkability (highest linkability has lowest rank and is first in list)
-	public static List<Player> sortByPossibleCombinations(Map<Integer, Player> players) {
+	public static List<Player> sortByPossibleCombinations(Map<Integer, Player> players, String playerFillingOrder) {
 		List<Player> sortedPlayers = new ArrayList<Player>();
 		for (Player player : players.values()) {
 			if (sortedPlayers.size()==0) {
@@ -284,7 +284,21 @@ public class PlayerUtils {
 //			System.out.println(player.linkablePlayers.size());
 //		}
 		
-		return sortedPlayers;
+		if (playerFillingOrder.equals("most2leastLinkable")) {
+			return sortedPlayers;
+		}
+		else if (playerFillingOrder.equals("least2mostLinkable")){
+			List<Player> sortedPlayersReverse = new ArrayList<Player>();
+			for (Player player : sortedPlayers) {
+				sortedPlayersReverse.add(0, player);
+			}
+			return sortedPlayersReverse;
+		}
+		else {
+			System.out.println("CAUTION: Player filling strategy null or unknown. Aborting... Please check in PlayerUtils!");
+			System.exit(0);
+			return sortedPlayers;
+		}
 	}
 
 	public static Map<Integer, Player> loadPlayers(String file, boolean considerMustHavePeerWishes, boolean mergeMustBePeers2OnePlayer, boolean enableMarketingMode)

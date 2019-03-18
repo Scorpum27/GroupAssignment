@@ -133,12 +133,32 @@ public class Schedule {
 	
 	
 	public static Schedule initializeSchedule(Map<Integer, Player> players, String courtScheduleFile, int initialPlacementStrategy,
-			String fixedGroupsFile, boolean useFixedSlotFile, boolean useFullSlotFilling)
+			String fixedGroupsFile, boolean useFixedSlotFile, boolean useFullSlotFilling,
+			String slotFillingOder, String playerFillingOrder, List<Integer> priorityPlayers)
 			throws EncryptedDocumentException, InvalidFormatException, IOException {
 		
 		Schedule schedule = new Schedule(courtScheduleFile); 	// initializes schedule with slots when courts are free (see excel file)
 		schedule.players.putAll(players);
-		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(schedule.players);
+		List<Player> playersSortedByPossibleCombinations = PlayerUtils.sortByPossibleCombinations(schedule.players, playerFillingOrder);
+		// do this loop to place previously unsatisfied players (not placed at all or ended up as a too small group) at the beginning of the placement queue
+		// --> this way, in this assignment process, they have higher chances to be combinable!
+		if (priorityPlayers.size()>0) {
+			for (int prioPlayerNr : priorityPlayers) {
+				Player prioPlayer = null;
+				for (Player sortedPlayer : playersSortedByPossibleCombinations) {
+					if (sortedPlayer.playerNr==prioPlayerNr) {
+						prioPlayer = sortedPlayer;
+						break;
+					}
+				}
+				if (!prioPlayer.equals(null)) {
+					playersSortedByPossibleCombinations.remove(prioPlayer);
+					playersSortedByPossibleCombinations.add(0, prioPlayer);
+					System.out.println("Placed previously unsatisfied player "+prioPlayer.name+" at beginning of placing queue!");
+				}
+			}
+		}
+
 		// load fixed groups and courts into a list of fixed slots
 		if (useFixedSlotFile) {
 			schedule.setFixedSlotsAndPlayers(fixedGroupsFile); 
@@ -180,7 +200,7 @@ public class Schedule {
 					else {
 						rankedSlots = slotsRankedByDemandReverse;
 					}
-					for (Slot slot : slotsRankedByDemand) {
+					for (Slot slot : rankedSlots) {
 						if (slot.getSize()>0) {	// only fill into empty slots
 							continue;
 						}
@@ -1983,6 +2003,24 @@ public class Schedule {
 			}
 		}
 		
+	}
+
+	public int calculateUnfillednessValue() {
+		int unfillednessValue = 0;
+		for (Player player : this.players.values()) {
+			for (Player subplayer : player.subPlayerProfiles) {
+				// add unfilledness for slots it is in, but where more players could be added (tolerated by this player)
+				// use math abs to take into account overfilled slots, which is also bad
+				for (Slot slot : subplayer.selectedSlots) {
+					unfillednessValue += Math.abs(subplayer.maxGroupSize-slot.getSize());
+				}
+				// if player is not even assigned, it contributes to the unfilledness as if there were an empty slot with the size of the player's maxGSize
+				if (subplayer.selectedSlots.size()<subplayer.nSlots) {
+					unfillednessValue += (subplayer.nSlots-subplayer.selectedSlots.size())*subplayer.maxGroupSize;
+				}
+			}
+		}
+		return unfillednessValue;
 	}
 
 }
